@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<!--
+  epy_paper universal submission-manuscript preview template.
+  A clean, readable single-column rendering close to the submission look:
+  serif body, double line spacing, continuous numbering visual cue.
+  Layout specifics (page size, line numbers) are submission-time concerns
+  handled by the DOCX/LaTeX routes; this HTML is the author preview.
+-->
+<html lang="$lang$">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>$title$</title>
+  <style>
+    html { font-size: 12pt; }
+    body {
+      font-family: "Times New Roman", Times, serif;
+      line-height: 2.0;
+      max-width: 46rem;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+      color: #111;
+    }
+    h1 { font-size: 1.5rem; line-height: 1.3; }
+    h2 { font-size: 1.2rem; }
+    h3 { font-size: 1.05rem; }
+    table { border-collapse: collapse; margin: 1rem 0; }
+    th, td { border: 1px solid #999; padding: 0.3rem 0.6rem; }
+    figure { margin: 1.5rem 0; text-align: center; }
+    figcaption { font-style: italic; font-size: 0.95rem; }
+    code { font-family: "Courier New", monospace; }
+  </style>
+$for(header-includes)$
+  $header-includes$
+$endfor$
+</head>
+<body>
+$if(title)$
+<h1>$title$</h1>
+$endif$
+$body$
+</body>
+</html>

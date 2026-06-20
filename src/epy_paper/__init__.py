@@ -1,0 +1,183 @@
+"""epy_paper — write a paper once, export a journal-compliant submission draft.
+
+Single public API for the suite (mirrors ``epy_reports.Report`` /
+``epy_slides.SlideDeck`` / ``epy_project.ProjectManager``)::
+
+    from epy_paper import Paper, available_journals
+
+    available_journals()                       # [(id, name), ...]
+    paper = Paper.from_file("manuscript.md")
+    result = paper.validate("eng-structures")  # ValidationResult (typed)
+    paper.to_draft("eng-structures", "draft.docx")   # or fmt="tex"/"pdf"
+
+The published two-column typeset is produced by the publisher, never the
+author; epy_paper produces the *submission manuscript* (single column,
+double-spaced, line-numbered, the journal's citation style and page size),
+driven by a per-journal **profile** in ``data/journals.json``. The author's
+source is one Markdown file whose YAML front matter models bilingual
+``title`` / ``abstract`` / ``keywords``, ``highlights`` and ``declarations``
+(see :mod:`epy_paper._authoring` and ``REQUIREMENTS.md``).
+"""
+
+from __future__ import annotations
+
+import json
+from importlib import resources
+from pathlib import Path
+from typing import Any
+
+from ._authoring import Author, Bilingual, Manuscript
+from ._render import PandocMissingError, Renderer
+from ._validation import Severity, ValidationResult, Warning, validate
+
+__version__ = "0.1.0"
+
+__all__ = [
+    "Paper",
+    "JournalProfile",
+    "Manuscript",
+    "Author",
+    "Bilingual",
+    "ValidationResult",
+    "Warning",
+    "Severity",
+    "PandocMissingError",
+    "available_journals",
+    "journal_profile",
+    "load_journals",
+]
+
+
+# --------------------------------------------------------------------------
+# Journal catalog
+# --------------------------------------------------------------------------
+
+
+def load_journals() -> dict[str, dict[str, Any]]:
+    """Return the full journal catalog (id -> profile dict)."""
+    text = (
+        resources.files("epy_paper.data")
+        .joinpath("journals.json")
+        .read_text(encoding="utf-8")
+    )
+    data = json.loads(text)
+    return {k: v for k, v in data.items() if not k.startswith("_")}
+
+
+def available_journals() -> list[tuple[str, str]]:
+    """Return ``(id, display name)`` for every journal in the catalog."""
+    return [
+        (jid, prof.get("name", jid))
+        for jid, prof in load_journals().items()
+    ]
+
+
+def journal_profile(journal_id: str) -> dict[str, Any]:
+    """Return one journal's raw profile dict (raises KeyError if unknown)."""
+    return load_journals()[journal_id]
+
+
+class JournalProfile:
+    """A typed view over one journal's submission requirements."""
+
+    def __init__(self, journal_id: str, data: dict[str, Any]) -> None:
+        """Wrap the raw catalog record for ``journal_id``."""
+        self.id = journal_id
+        self._d = data
+
+    def __getattr__(self, name: str) -> Any:
+        """Expose profile fields as attributes (e.g. ``profile.columns``)."""
+        try:
+            return self._d[name]
+        except KeyError as exc:  # pragma: no cover - attribute miss
+            raise AttributeError(name) from exc
+
+    @property
+    def name(self) -> str:
+        """Human-readable journal name."""
+        return self._d.get("name", self.id)
+
+    def get(self, key: str, default: Any = None) -> Any:
+        """Dict-style access with a default."""
+        return self._d.get(key, default)
+
+
+# --------------------------------------------------------------------------
+# Paper facade
+# --------------------------------------------------------------------------
+
+
+class Paper:
+    """A single source paper that exports a journal-compliant draft.
+
+    The source is the author's "final" content: one Markdown file whose YAML
+    front matter models ``title`` / ``abstract`` / ``keywords`` (each plain or
+    bilingual ``{es, en}``), ``authors``, ``highlights``, ``declarations`` and
+    ``bibliography``. See :class:`epy_paper.Manuscript`.
+    """
+
+    def __init__(self, source: str, base_dir: Path | None = None) -> None:
+        """Build a Paper from Markdown ``source`` text."""
+        self.source = source
+        self.base_dir = base_dir
+        self.manuscript = Manuscript.from_source(source, base_dir=base_dir)
+
+    @classmethod
+    def from_file(cls, path: str | Path) -> Paper:
+        """Build a Paper by reading a Markdown file."""
+        p = Path(path)
+        return cls(p.read_text(encoding="utf-8"), base_dir=p.parent)
+
+    # -- profiles -------------------------------------------------------
+
+    def profile(self, journal_id: str) -> JournalProfile:
+        """Return the :class:`JournalProfile` for ``journal_id``."""
+        return JournalProfile(journal_id, journal_profile(journal_id))
+
+    def validate(self, journal_id: str) -> ValidationResult:
+        """Return structured warnings where the paper breaks the profile.
+
+        Non-blocking: every surveyed journal "recommends" rather than
+        hard-fails, so this reports issues (abstract too long, missing
+        bilingual abstract, missing highlights, blinding leaks, …) as a typed
+        :class:`ValidationResult`. The result is iterable and ``len``-able for
+        back-compatible use; ``result.messages()`` yields plain strings.
+        """
+        prof = self.profile(journal_id)
+        return validate(self.manuscript, prof, journal_id)
+
+    # -- export ---------------------------------------------------------
+
+    def to_draft(
+        self, journal_id: str, out_path: str | Path, *, fmt: str | None = None
+    ) -> Path:
+        """Export the submission manuscript for ``journal_id``.
+
+        ``fmt`` defaults to the journal's preferred format (``docx`` for
+        Word-only journals, ``tex`` where a LaTeX class exists). The draft is
+        single-column, double-spaced and line-numbered per the profile, with
+        the journal's citation style applied via the bundled CSL and, for
+        LaTeX/PDF, its official class when one is bundled.
+        """
+        prof = self.profile(journal_id)
+        out = Path(out_path)
+        fmt = fmt or (prof.get("formats") or ["docx"])[0]
+        renderer = Renderer(self.manuscript, prof)
+        if fmt == "tex":
+            renderer.to_latex(out)
+        elif fmt == "pdf":
+            renderer.to_pdf(out)
+        else:
+            renderer.to_docx(out)
+        return out
+
+    def render_notes(self, journal_id: str, fmt: str) -> list[str]:
+        """Return the gaps/fallbacks a render for ``journal_id`` would log.
+
+        Useful to surface (e.g. in a UI) that a LaTeX class was not bundled
+        and the generic template was used, without performing the render.
+        """
+        renderer = Renderer(self.manuscript, self.profile(journal_id))
+        if fmt in ("tex", "pdf"):
+            renderer.latex_class()
+        return renderer.notes

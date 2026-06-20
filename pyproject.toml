@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "epy_paper"
+version = "0.1.0"
+description = "Write a paper once, export a journal-compliant submission draft."
+authors = [{ name = "Ing. Angel Navarro-Mora M.Sc.", email = "ahnavarroitcr@gmail.com" }]
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+dependencies = ["pypandoc-binary>=1.13", "PyYAML>=6.0"]
+
+[project.optional-dependencies]
+gui = ["PySide6>=6.6"]
+dev = ["pytest>=8.0", "ruff>=0.5", "python-docx>=1.1"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+epy_paper = [
+    "data/*.json",
+    "assets/csl/*.csl",
+    "assets/latex/*.cls",
+    "assets/latex/*.bst",
+    "assets/templates/*",
+    "assets/reference_docx/*.docx",
+]
+
+[tool.ruff]
+line-length = 79
+src = ["src", "tests", "tools"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "SIM", "PLC0415", "UP"]
