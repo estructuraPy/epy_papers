@@ -14,14 +14,14 @@ abstract:
     epy_paper is a Python library and desktop editor for authoring
     journal submission manuscripts from a single Markdown source.
     The author writes once and exports a journal-compliant draft for
-    any of the 35 supported journals, driven by per-journal profiles.
+    any of the 50 supported journals, driven by per-journal profiles.
     This manual documents the public API, the authoring format, the
     desktop editor, and the export workflow.
   es: >
     epy_paper es una librería Python y editor de escritorio para la
     redacción de manuscritos de revistas científicas a partir de una
     única fuente Markdown. El autor escribe una vez y exporta un
-    borrador conforme a la revista para cualquiera de las 35 revistas
+    borrador conforme a la revista para cualquiera de las 50 revistas
     soportadas, guiado por perfiles por revista. Este manual documenta
     la API pública, el formato de autoría, el editor de escritorio y el
     flujo de exportación.
@@ -30,7 +30,7 @@ keywords:
   es: [manuscrito, revista, envío, Markdown, Python]
 highlights:
   - Write the paper once in Markdown; export a draft for any supported journal.
-  - 35 journal profiles covering civil, structural, and multidisciplinary venues.
+  - 50 journal profiles covering civil, structural, and multidisciplinary venues.
   - Bilingual title, abstract, and keywords for Latin American submission venues.
   - Live preview with bilingual front-matter display and Markdown body rendering.
   - Validation panel flags abstract length, missing bilingual fields, and blinding leaks.
@@ -299,7 +299,7 @@ journals = available_journals()
 # Returns: [("asce_journal_structural_engineering", "ASCE Journal of ..."), ...]
 ```
 
-Returns a list of `(journal_id, journal_name)` tuples for all 35 bundled
+Returns a list of `(journal_id, journal_name)` tuples for all 50 bundled
 journal profiles, sorted alphabetically by name.
 
 ### journal_profile
@@ -385,7 +385,7 @@ The toolbar contains six dropdown menus:
 
 ## Journal Selector
 
-The toolbar contains a **Journal** dropdown populated from all 35 bundled
+The toolbar contains a **Journal** dropdown populated from all 50 bundled
 journal profiles. Select a journal before validating or exporting to apply
 that journal's requirements and citation style.
 
@@ -471,7 +471,7 @@ paper.to_draft("nature", Path("preview.html"), fmt="html")
 
 # Supported Journals
 
-epy_paper bundles 35 journal profiles covering major civil, structural,
+epy_paper bundles 50 journal profiles covering major civil, structural,
 and multidisciplinary engineering venues. A few examples:
 
 | ID | Journal Name |

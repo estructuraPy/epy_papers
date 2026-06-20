@@ -14,14 +14,14 @@ abstract:
     epy_paper is a Python library and desktop editor for authoring
     journal submission manuscripts from a single Markdown source.
     The author writes once and exports a journal-compliant draft for
-    any of the 35 supported journals, driven by per-journal profiles.
+    any of the 50 supported journals, driven by per-journal profiles.
     This manual documents the public API, the authoring format, the
     desktop editor, and the export workflow.
   es: >
     epy_paper es una librería Python y editor de escritorio para la
     redacción de manuscritos de revistas científicas a partir de una
     única fuente Markdown. El autor escribe una vez y exporta un
-    borrador conforme a la revista para cualquiera de las 35 revistas
+    borrador conforme a la revista para cualquiera de las 50 revistas
     soportadas, guiado por perfiles por revista. Este manual documenta
     la API pública, el formato de autoría, el editor de escritorio y el
     flujo de exportación.
@@ -30,7 +30,7 @@ keywords:
   es: [manuscrito, revista, envío, Markdown, Python]
 highlights:
   - Escriba el artículo una sola vez en Markdown y exporte un borrador para cualquier revista soportada.
-  - 35 perfiles de revistas en ingeniería civil, estructural y multidisciplinaria.
+  - 50 perfiles de revistas en ingeniería civil, estructural y multidisciplinaria.
   - Campos bilingües para revistas latinoamericanas y de habla hispana.
   - Vista previa en vivo con renderizado de portada y cuerpo del manuscrito.
   - Panel de validación que detecta errores de longitud, campos faltantes y filtraciones de identidad.
@@ -303,7 +303,7 @@ revistas = available_journals()
 # Retorna: [("asce_journal_structural_engineering", "ASCE Journal of ..."), ...]
 ```
 
-Retorna una lista de tuplas `(journal_id, nombre_revista)` para los 35 perfiles
+Retorna una lista de tuplas `(journal_id, nombre_revista)` para los 50 perfiles
 de revistas incluidos, ordenados alfabéticamente por nombre.
 
 ### journal_profile
@@ -389,7 +389,7 @@ La barra de herramientas contiene seis menús desplegables:
 
 ## Selector de revista
 
-La barra de herramientas contiene un menú desplegable **Journal** con los 35
+La barra de herramientas contiene un menú desplegable **Journal** con los 50
 perfiles de revistas incluidos. Seleccione una revista antes de validar o
 exportar para aplicar los requisitos y el estilo de cita de esa revista.
 
@@ -477,7 +477,7 @@ paper.to_draft("nature", Path("vista_previa.html"), fmt="html")
 
 # Revistas soportadas
 
-epy_paper incluye 35 perfiles de revistas para principales venues de ingeniería
+epy_paper incluye 50 perfiles de revistas para principales venues de ingeniería
 civil, estructural y multidisciplinaria. Algunos ejemplos:
 
 | ID | Nombre de la revista |
