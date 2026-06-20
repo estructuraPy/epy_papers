@@ -9,7 +9,8 @@ description = "Write a paper once, export a journal-compliant submission draft."
 authors = [{ name = "Ing. Angel Navarro-Mora M.Sc.", email = "ahnavarroitcr@gmail.com" }]
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "MIT" }
+license = { text = "Proprietary" }
+classifiers = ["License :: Other/Proprietary License"]
 dependencies = [
     "pypandoc-binary>=1.13",
     "PyYAML>=6.0",

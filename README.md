@@ -1,5 +1,7 @@
 # epy_paper
 
+[![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red)](LICENSE)
+
 Write a scientific paper **once**, export a **journal-compliant submission
 draft** for any of 50 journals. Part of the ePy suite, sibling of
 `epy_reports` (reports) and `epy_slides` (presentations).
@@ -72,4 +74,4 @@ reusing the epy_reports shell, and PyInstaller + Inno Setup packaging.
 
 ---
 
-*epy_paper · Ing. Angel Navarro-Mora M.Sc. · ANM Ingeniería · MIT license*
+*epy_paper · Ing. Angel Navarro-Mora M.Sc. · ANM Ingeniería · Proprietary — All Rights Reserved*
