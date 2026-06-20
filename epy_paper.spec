@@ -39,7 +39,11 @@ datas += [
 binaries = []
 binaries += collect_dynamic_libs("pypandoc")
 _pandoc = pypandoc.get_pandoc_path()
-if not _pandoc.lower().endswith(".exe"):
+# On Windows, pypandoc-binary ships pandoc.exe; on Linux/macOS it ships
+# a plain `pandoc` binary.  Append .exe only on Windows so the spec
+# works unmodified on both platforms.
+import sys as _sys
+if _sys.platform == "win32" and not _pandoc.lower().endswith(".exe"):
     _pandoc += ".exe"
 binaries.append((_pandoc, "pypandoc/files"))
 
