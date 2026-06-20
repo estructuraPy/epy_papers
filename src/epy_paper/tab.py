@@ -378,6 +378,7 @@ class PaperTab(QWidget):
         self._suppress_change = False
         self._render_seq = 0
         self._last_pos = ""
+        self._preview_tmp_dir: Path | None = None
 
         self.editor = QPlainTextEdit(self)
         self._setup_editor()
@@ -728,7 +729,7 @@ class PaperTab(QWidget):
                 "<p style='color:red'>Preview error.</p>"
                 "</body></html>"
             )
-        if not hasattr(self, "_preview_tmp_dir"):
+        if self._preview_tmp_dir is None:
             self._preview_tmp_dir = Path(
                 tempfile.mkdtemp(prefix="epy_paper_preview_")
             )

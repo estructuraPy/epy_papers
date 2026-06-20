@@ -24,31 +24,26 @@ epy_paper = "epy_paper.app:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/epy_paper"]
-
-[tool.setuptools.packages.find]
-where = ["src"]
-
-[tool.setuptools.package-data]
-epy_paper = [
-    "data/*.json",
-    "assets/csl/*.csl",
-    "assets/latex/*.cls",
-    "assets/latex/*.bst",
-    "assets/templates/*",
-    "assets/reference_docx/*.docx",
-    "assets/*.md",
-]
+# assets/ is a sub-package (has __init__.py) so hatchling walks into it and
+# bundles every asset alongside the .py files — no force-include needed.
 
 [tool.ruff]
 line-length = 79
+target-version = "py310"
 src = ["src", "tests", "tools"]
 
 [tool.ruff.lint]
-select = ["E", "W", "F", "I", "N", "UP", "B", "SIM"]
+select = ["E", "W", "F", "I", "N", "D", "UP", "B", "SIM"]
 ignore = ["D203", "D213"]
 
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101", "N802", "N803"]
+"tests/*" = ["D"]
+"epy_paper.spec" = ["D", "F821", "E501"]
+"tools/**/*.py" = ["D", "E501"]
+"installer/**/*.py" = ["D", "E402", "E501"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

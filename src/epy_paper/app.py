@@ -491,14 +491,7 @@ class PaperWindow(QMainWindow):
                     "INFO": "#0066cc",
                 }
                 for w in warnings:
-                    try:
-                        sev = (
-                            w.severity.name
-                            if hasattr(w.severity, "name")
-                            else str(w.severity)
-                        )
-                    except Exception:
-                        sev = "INFO"
+                    sev = str(w.severity).upper()
                     color = sev_colors.get(sev, "#333333")
                     item = QListWidgetItem(
                         f"[{sev}] {w.message}"
@@ -522,11 +515,11 @@ class PaperWindow(QMainWindow):
             theme = _themes.get(theme_id)
         except Exception:
             return
-        app = QApplication.instance()
-        if app is not None:
+        qapp = QApplication.instance()
+        if isinstance(qapp, QApplication):
             try:
-                _themes.apply_palette(app, theme)
-                app.setStyleSheet(_themes.qss_for(theme))
+                _themes.apply_palette(qapp, theme)
+                qapp.setStyleSheet(_themes.qss_for(theme))
             except Exception:
                 pass
         if theme.id in self.theme_actions:
