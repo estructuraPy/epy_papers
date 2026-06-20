@@ -1,37 +1,21 @@
-Proprietary License — All Rights Reserved
+MIT License
 
-Copyright (c) 2026 Ing. Angel Navarro-Mora M.Sc. / ANM Ingenieria
-(estructuraPy), Costa Rica.
+Copyright (c) 2026 Ing. Angel Navarro-Mora M.Sc. and estructuraPy Team
 
-This software and its accompanying documentation, configuration files,
-templates, layouts, and assets (the "Software") are the confidential
-and proprietary property of ANM Ingenieria.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-No license, express or implied, is granted to any person or entity to
-use, copy, modify, merge, publish, distribute, sublicense, or sell the
-Software, in whole or in part, except under a separate written
-commercial license agreement signed by ANM Ingenieria.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-Unauthorized use, reproduction, or distribution of this Software, or
-any portion of it, is strictly prohibited and may result in civil and
-criminal penalties.
-
-For commercial licensing inquiries contact:
-  Ing. Angel Navarro-Mora M.Sc.
-  ahnavarro@anmingenieria.com
-  https://www.anmingenieria.com/
-
----
-
-Third-party bundled components retain their own licenses and are
-redistributed unmodified for the user's convenience. Their copyright and
-license remain with their respective authors; they are NOT covered by the
-proprietary terms above:
-
-- assets/latex/elsarticle.cls, elsarticle-*.bst (Elsevier) — LaTeX Project
-  Public License (LPPL).
-- assets/latex/IEEEtran.cls (IEEE) — LaTeX Project Public License (LPPL).
-- assets/latex/ascelike.cls, ascelike.bst (ASCE community class) — see the
-  package's own terms on CTAN.
-- assets/csl/*.csl — Citation Style Language styles, distributed by the CSL
-  project under the Creative Commons Attribution-ShareAlike 3.0 license.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
