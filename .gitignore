@@ -30,6 +30,7 @@ Thumbs.db
 
 # Build / installer artifacts
 installer/dist/
+assets_build/
 *.spec.bak
 
 # LaTeX build by-products
