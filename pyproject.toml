@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=68"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [project]
 name = "epy_paper"
@@ -10,11 +10,20 @@ authors = [{ name = "Ing. Angel Navarro-Mora M.Sc.", email = "ahnavarroitcr@gmai
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "MIT" }
-dependencies = ["pypandoc-binary>=1.13", "PyYAML>=6.0"]
+dependencies = [
+    "pypandoc-binary>=1.13",
+    "PyYAML>=6.0",
+    "PySide6>=6.6",
+]
 
 [project.optional-dependencies]
-gui = ["PySide6>=6.6"]
 dev = ["pytest>=8.0", "ruff>=0.5", "python-docx>=1.1"]
+
+[project.gui-scripts]
+epy_paper = "epy_paper.app:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/epy_paper"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -27,6 +36,7 @@ epy_paper = [
     "assets/latex/*.bst",
     "assets/templates/*",
     "assets/reference_docx/*.docx",
+    "assets/*.md",
 ]
 
 [tool.ruff]
@@ -34,4 +44,12 @@ line-length = 79
 src = ["src", "tests", "tools"]
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "B", "SIM", "PLC0415", "UP"]
+select = ["E", "W", "F", "I", "N", "UP", "B", "SIM"]
+ignore = ["D203", "D213"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "N802", "N803"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
