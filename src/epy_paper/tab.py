@@ -6,6 +6,8 @@ import html as _html
 import re
 import shutil
 import tempfile
+from functools import lru_cache
+from importlib import resources
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QTimer, QUrl, Signal
@@ -262,6 +264,133 @@ def _md_to_html_basic(text: str) -> str:
         out.append(f"<pre><code>{body}</code></pre>")
 
     return "\n".join(out)
+
+
+@lru_cache(maxsize=1)
+def _mathjax_block() -> str:
+    """Return the MathJax v3 config + bundled tex-svg script (cached)."""
+    cfg = (
+        "<script>window.MathJax={tex:{inlineMath:[['$','$'],"
+        "['\\\\(','\\\\)']],displayMath:[['$$','$$'],['\\\\[','\\\\]']],"
+        "processEscapes:true,tags:'none'},svg:{fontCache:'global'},"
+        "startup:{ready(){MathJax.startup.defaultReady();"
+        "MathJax.startup.promise.then(function(){"
+        "window._mathjax_done=true;});}}};</script>"
+    )
+    try:
+        js = (
+            resources.files("epy_paper.assets.mathjax")
+            .joinpath("tex-svg-full.js")
+            .read_text(encoding="utf-8")
+        )
+    except (FileNotFoundError, ModuleNotFoundError, OSError):
+        return cfg
+    return cfg + f"<script>{js}</script>"
+
+
+_LINE_NUMBER_CSS = (
+    ".page { position: relative; }"
+    ".epy-lnum-gutter { position: absolute; top: 0; left: 0;"
+    " width: 1.4in; height: 100%; pointer-events: none; }"
+    ".epy-lnum { position: absolute; left: 0.35in; width: 0.8in;"
+    " text-align: right; color: #b6b6b6;"
+    " font: 0.66em/1 'Segoe UI', Arial, sans-serif; }"
+)
+
+_LINE_NUMBER_JS = """
+<script>
+(function () {
+  function number() {
+    var page = document.querySelector('.page'); if (!page) return;
+    var body = page.querySelector('.body-section') || page;
+    var old = page.querySelector('.epy-lnum-gutter'); if (old) old.remove();
+    var g = document.createElement('div'); g.className = 'epy-lnum-gutter';
+    page.appendChild(g);
+    var base = page.getBoundingClientRect(), n = 0;
+    var blocks = body.querySelectorAll(
+      'p, li, h2, h3, h4, blockquote, figcaption, dd, dt');
+    blocks.forEach(function (b) {
+      var rng = document.createRange(); rng.selectNodeContents(b);
+      var rects = rng.getClientRects(), seen = {};
+      for (var i = 0; i < rects.length; i++) {
+        var r = rects[i];
+        if (r.width < 2 || r.height < 2) continue;
+        var k = Math.round(r.top); if (seen[k]) continue; seen[k] = 1;
+        n++;
+        var d = document.createElement('div');
+        d.className = 'epy-lnum'; d.textContent = n;
+        d.style.top = (r.top - base.top) + 'px';
+        g.appendChild(d);
+      }
+    });
+  }
+  window._epyNumberLines = number;
+  var tries = 0;
+  function wait() {
+    tries++;
+    if (window._mathjax_done === true || tries > 50 || !window.MathJax) {
+      try { number(); } catch (e) {}
+    } else { setTimeout(wait, 80); }
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', wait);
+  } else { wait(); }
+  var t;
+  window.addEventListener('resize', function () {
+    clearTimeout(t);
+    t = setTimeout(function () { try { number(); } catch (e) {} }, 150);
+  });
+})();
+</script>
+"""
+
+
+def _wants_line_numbers(profile: dict | None) -> bool:
+    """Whether the profile asks for numbered manuscript lines."""
+    return str((profile or {}).get("line_numbers", "off")).lower() not in (
+        "off", "", "false", "no", "none", "0"
+    )
+
+
+def _build_preview_faithful(
+    text: str, profile: dict | None, base_dir: Path | None = None
+) -> str:
+    """Render a WYSIWYG preview through the export's Pandoc pipeline.
+
+    The body is rendered by Pandoc exactly as it would be exported — citations
+    resolved with the journal's CSL, numbered sections, double-blind author
+    stripping — wrapped in the journal's page geometry, with MathJax
+    typesetting equations and real per-visual-line numbering when the journal
+    requires it. Raises when Pandoc is unavailable so the caller can fall back
+    to the fast preview.
+    """
+    from epy_paper import Paper  # noqa: PLC0415
+    from epy_paper._render import Renderer  # noqa: PLC0415
+
+    paper = Paper(text, base_dir)
+    fragment = Renderer(paper.manuscript, profile or {}).to_html_fragment()
+    css = _journal_css(profile) + _BASE_CSS
+    line_numbers = _wants_line_numbers(profile)
+    ln_css = _LINE_NUMBER_CSS if line_numbers else ""
+    ln_js = _LINE_NUMBER_JS if line_numbers else ""
+    base_href = ""
+    if base_dir is not None:
+        try:
+            base_href = f'<base href="{base_dir.resolve().as_uri()}/">'
+        except (ValueError, OSError):
+            base_href = ""
+    fmt_bar = f'<div class="fmt-bar">{_format_summary(profile)}</div>'
+    return (
+        "<!doctype html><html><head><meta charset='utf-8'>"
+        f"{base_href}"
+        f"<style>{css}{ln_css}.page .body-section{{margin-top:0;}}</style>"
+        f"{_mathjax_block()}"
+        "</head><body>"
+        f"{fmt_bar}"
+        f'<div class="page"><div class="body-section">{fragment}</div></div>'
+        f"{ln_js}"
+        "</body></html>"
+    )
 
 
 def _build_preview_html(text: str, profile: dict | None = None) -> str:
@@ -796,16 +925,31 @@ class PaperTab(QWidget):
         self._render_now(preserve=True)
 
     def _render_now(self, *, preserve: bool = False) -> None:
-        """Render the buffer into the preview view."""
+        """Render the buffer into the preview view.
+
+        With a journal selected, the preview is rendered through the export's
+        Pandoc pipeline (faithful WYSIWYG); if Pandoc is unavailable or the
+        render fails, it falls back to the fast in-process preview.
+        """
         text = self.editor.toPlainText()
-        try:
-            html = _build_preview_html(text, self._journal_profile)
-        except Exception:
-            html = (
-                "<html><body>"
-                "<p style='color:red'>Preview error.</p>"
-                "</body></html>"
-            )
+        base_dir = self._path.parent if self._path is not None else None
+        html = None
+        if self._journal_profile:
+            try:
+                html = _build_preview_faithful(
+                    text, self._journal_profile, base_dir
+                )
+            except Exception:
+                html = None
+        if html is None:
+            try:
+                html = _build_preview_html(text, self._journal_profile)
+            except Exception:
+                html = (
+                    "<html><body>"
+                    "<p style='color:red'>Preview error.</p>"
+                    "</body></html>"
+                )
         if self._preview_tmp_dir is None:
             self._preview_tmp_dir = Path(
                 tempfile.mkdtemp(prefix="epy_paper_preview_")

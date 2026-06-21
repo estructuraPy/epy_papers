@@ -227,6 +227,24 @@ class Renderer:
             args.append(f"--resource-path={latex_dir}")
         return args
 
+    def to_html_fragment(self) -> str:
+        """Render the composed manuscript to an HTML fragment for preview.
+
+        Uses the same Pandoc pipeline as the exports — the journal's citation
+        style (CSL) resolves the references and sections are numbered — so the
+        live preview is a faithful rendering of the submission body, not an
+        approximation. Equations are left as TeX for MathJax to typeset in the
+        preview.
+        """
+        pypandoc = self._require_pandoc()
+        args = self._common_args() + ["--number-sections"]
+        return pypandoc.convert_text(
+            self._doc.markdown,
+            to="html5",
+            format="markdown",
+            extra_args=args,
+        )
+
     def to_latex(self, out: Path) -> Path:
         """Render a LaTeX submission manuscript."""
         pypandoc = self._require_pandoc()
