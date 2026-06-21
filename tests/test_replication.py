@@ -1,7 +1,7 @@
 """Navarro-Mora replication: real publications as submission-format targets.
 
 Each fixture is a faithful structural skeleton of a real article (metadata,
-abstract, keywords, sections) used purely to prove epy_paper reproduces the
+abstract, keywords, sections) used purely to prove epy_papers reproduces the
 submission shape for its venue. There is no relationship to the formats.
 
 Render assertions skip gracefully when Pandoc is absent; the validation and
@@ -10,7 +10,7 @@ composition assertions always run.
 
 from __future__ import annotations
 
-import epy_paper as ep
+import epy_papers as ep
 from _pandoc import needs_pandoc
 
 # (fixture file, target journal id, expected language pair)

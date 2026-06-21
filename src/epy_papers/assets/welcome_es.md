@@ -1,7 +1,7 @@
 ---
 title:
-  en: "epy_paper User Manual"
-  es: "Manual de usuario epy_paper"
+  en: "epy_papers User Manual"
+  es: "Manual de usuario epy_papers"
 language: es
 authors:
   - name: "Ing. Angel Navarro-Mora M.Sc."
@@ -11,14 +11,14 @@ authors:
     corresponding: true
 abstract:
   en: >
-    epy_paper is a Python library and desktop editor for authoring
+    epy_papers is a Python library and desktop editor for authoring
     journal submission manuscripts from a single Markdown source.
     The author writes once and exports a journal-compliant draft for
     any of the 50 supported journals, driven by per-journal profiles.
     This manual documents the public API, the authoring format, the
     desktop editor, and the export workflow.
   es: >
-    epy_paper es una librería Python y editor de escritorio para la
+    epy_papers es una librería Python y editor de escritorio para la
     redacción de manuscritos de revistas científicas a partir de una
     única fuente Markdown. El autor escribe una vez y exporta un
     borrador conforme a la revista para cualquiera de las 50 revistas
@@ -45,13 +45,13 @@ bibliography: refs.bib
 
 # Introducción
 
-epy_paper resuelve un problema práctico que enfrenta todo investigador que
+epy_papers resuelve un problema práctico que enfrenta todo investigador que
 envía artículos a múltiples revistas: el formato. El contenido del manuscrito
 — título, resumen, cuerpo, referencias — siempre es el mismo. Lo que cambia
 es la maquetación, el estilo de citas, la fuente y los requisitos estructurales
 de cada revista.
 
-El enfoque de epy_paper es simple: escribir el artículo completo **una sola vez**
+El enfoque de epy_papers es simple: escribir el artículo completo **una sola vez**
 en un formato Markdown estructurado, y luego exportar un **borrador** compatible
 con la revista seleccionada. Un borrador es un archivo Word, LaTeX o PDF listo
 para enviar, formateado según los requisitos de la revista. El equipo editorial
@@ -59,7 +59,7 @@ se encarga de la composición final en dos columnas y el estilo de la editorial;
 lo que se entrega es un manuscrito limpio y bien estructurado, no una copia
 pixel a pixel del diseño de la revista.
 
-Este documento está escrito en el formato de autoría de epy_paper. Puede leerlo
+Este documento está escrito en el formato de autoría de epy_papers. Puede leerlo
 en la vista previa a la derecha, usar los menús de la barra de herramientas para
 insertar elementos y usar este archivo como punto de partida para su propio
 artículo.
@@ -190,7 +190,7 @@ El resultado se sigue de la teoría clásica de vigas [@timoshenko_1951].
 
 # API pública
 
-epy_paper expone una API Python limpia y mínima. Todos los símbolos públicos
+epy_papers expone una API Python limpia y mínima. Todos los símbolos públicos
 son importables desde el paquete principal.
 
 ## Clase Paper
@@ -199,7 +199,7 @@ La clase central es `Paper`. Encapsula el fuente del manuscrito y provee
 métodos para validación y exportación.
 
 ```python
-from epy_paper import Paper
+from epy_papers import Paper
 
 # Crear desde texto fuente
 paper = Paper(texto_fuente, base_dir=Path("."))
@@ -297,7 +297,7 @@ for nota in notas:
 ### available_journals
 
 ```python
-from epy_paper import available_journals
+from epy_papers import available_journals
 
 revistas = available_journals()
 # Retorna: [("asce_journal_structural_engineering", "ASCE Journal of ..."), ...]
@@ -309,7 +309,7 @@ de revistas incluidos, ordenados alfabéticamente por nombre.
 ### journal_profile
 
 ```python
-from epy_paper import journal_profile
+from epy_papers import journal_profile
 
 perfil = journal_profile("ieee_access")
 # Retorna: {"name": "IEEE Access", "formats": ["docx", "tex"], ...}
@@ -320,7 +320,7 @@ Retorna el diccionario de perfil sin procesar para un `journal_id` dado.
 ### load_journals
 
 ```python
-from epy_paper import load_journals
+from epy_papers import load_journals
 
 todos_los_perfiles = load_journals()
 # Retorna: {"asce_journal_structural_engineering": {...}, ...}
@@ -332,7 +332,7 @@ con `_` son eliminadas (son metadatos internos).
 ### add_journal
 
 ```python
-from epy_paper import add_journal, available_journals
+from epy_papers import add_journal, available_journals
 
 add_journal(
     "mi-revista",
@@ -343,7 +343,7 @@ add_journal(
 ```
 
 Agrega o actualiza un perfil de revista en el catálogo de usuario escribible
-(`~/.epy_paper/journals.json`, o `$EPY_PAPER_USER_JOURNALS`), combinado sobre el
+(`~/.epy_papers/journals.json`, o `$EPY_PAPERS_USER_JOURNALS`), combinado sobre el
 catálogo incluido para que sobreviva a las actualizaciones de la app. En el
 editor, el botón **+** junto al selector de revista abre un diálogo equivalente
 y la nueva revista aparece de inmediato en el selector. `remove_user_journal(id)`
@@ -358,7 +358,7 @@ listo para enviar.
 ## API de validación
 
 ```python
-from epy_paper import Severity, Warning, ValidationResult
+from epy_papers import Severity, Warning, ValidationResult
 ```
 
 - `Severity.ERROR` — debe corregirse antes del envío
@@ -374,7 +374,7 @@ cuando no hay hallazgos de severidad ERROR.
 ## Clases de excepción
 
 ```python
-from epy_paper import PandocMissingError
+from epy_papers import PandocMissingError
 ```
 
 Lanzada por `Paper.to_draft` y `Paper.render_notes` cuando Pandoc no se
@@ -383,21 +383,21 @@ encuentra en el PATH del sistema o a través de `pypandoc-binary`.
 
 # Editor de escritorio
 
-El editor de escritorio de epy_paper (`python -m epy_paper`) provee un editor
+El editor de escritorio de epy_papers (`python -m epy_papers`) provee un editor
 Markdown con múltiples pestañas y una vista previa académica en vivo a la derecha.
 
 ## Iniciar el editor
 
 ```bash
-python -m epy_paper                  # abrir con pestaña de bienvenida
-python -m epy_paper manuscrito.md    # abrir un archivo específico
-python -m epy_paper --version        # mostrar versión
+python -m epy_papers                  # abrir con pestaña de bienvenida
+python -m epy_papers manuscrito.md    # abrir un archivo específico
+python -m epy_papers --version        # mostrar versión
 ```
 
 O use el punto de entrada GUI instalado:
 
 ```bash
-epy_paper manuscrito.md
+epy_papers manuscrito.md
 ```
 
 ## Menús de la barra de herramientas
@@ -503,7 +503,7 @@ paper.to_draft("nature", Path("vista_previa.html"), fmt="html")
 
 # Revistas soportadas
 
-epy_paper incluye 50 perfiles de revistas para principales venues de ingeniería
+epy_papers incluye 50 perfiles de revistas para principales venues de ingeniería
 civil, estructural y multidisciplinaria. Algunos ejemplos:
 
 | ID | Nombre de la revista |
@@ -521,12 +521,12 @@ Use `available_journals()` para obtener la lista completa de forma programática
 
 # Ejemplo de figura
 
-La figura siguiente ilustra el flujo de trabajo de epy_paper: el autor escribe
+La figura siguiente ilustra el flujo de trabajo de epy_papers: el autor escribe
 una vez en Markdown, selecciona una revista en el menú desplegable y exporta
 un borrador compatible. El perfil de la revista controla la plantilla, el estilo
 de cita y las reglas de validación.
 
-![Figura 1: Flujo de exportación de epy_paper](figures/workflow.png){#fig-1 width=80%}
+![Figura 1: Flujo de exportación de epy_papers](figures/workflow.png){#fig-1 width=80%}
 
 
 # Ejemplo de tabla
@@ -546,7 +546,7 @@ La tabla @tbl-1 resume los formatos de exportación soportados.
 # Ejemplo de ecuación
 
 La equivalencia energía-masa de la relatividad especial (@eq-1) es un ejemplo
-clásico de ecuación de display en epy_paper:
+clásico de ecuación de display en epy_papers:
 
 $$
 E = mc^2
@@ -560,11 +560,11 @@ más rica.
 
 # Ejemplo de código
 
-El siguiente fragmento muestra el uso completo de la API de epy_paper:
+El siguiente fragmento muestra el uso completo de la API de epy_papers:
 
 ```python
 from pathlib import Path
-from epy_paper import Paper, available_journals
+from epy_papers import Paper, available_journals
 
 # Listar todas las revistas soportadas
 for jid, jname in available_journals():
@@ -603,7 +603,7 @@ Para citas múltiples, use una lista separada por punto y coma:
 
 # Lista de verificación de inicio rápido
 
-1. Abra epy_paper desde la línea de comandos: `python -m epy_paper`
+1. Abra epy_papers desde la línea de comandos: `python -m epy_papers`
 2. Use **Paper > Insert Title Block** para insertar la plantilla de metadatos.
 3. Complete su título, autores, resumen, palabras clave y ruta de bibliografía.
 4. Escriba el cuerpo del artículo en Markdown usando el menú Paper para insertar

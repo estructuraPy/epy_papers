@@ -1,5 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
-# PyInstaller spec for epy_paper: portable onedir build.
+# PyInstaller spec for epy_papers: portable onedir build.
 
 from pathlib import Path as _Path
 import shutil as _shutil
@@ -10,8 +10,8 @@ from PyInstaller.utils.hooks import (
     collect_submodules,
 )
 
-# Icon: try to use epy_paper.ico; fall back to epy_reports.ico.
-_ICON_PATH = _Path("assets_build/epy_paper.ico")
+# Icon: try to use epy_papers.ico; fall back to epy_reports.ico.
+_ICON_PATH = _Path("assets_build/epy_papers.ico")
 if not _ICON_PATH.exists():
     _sibling = _Path("../epy_reports/assets_build/epy_reports.ico")
     if _sibling.exists():
@@ -22,16 +22,16 @@ _ICON = str(_ICON_PATH) if _ICON_PATH.exists() else None
 datas = []
 datas += collect_data_files("pypandoc", include_py_files=False)
 
-_ASSETS = _Path("src/epy_paper/assets")
+_ASSETS = _Path("src/epy_papers/assets")
 datas += [
-    (str(p), str(_Path("epy_paper") / p.relative_to("src/epy_paper").parent))
+    (str(p), str(_Path("epy_papers") / p.relative_to("src/epy_papers").parent))
     for p in _ASSETS.rglob("*")
     if p.is_file() and p.suffix != ".py"
 ]
 
-_DATA = _Path("src/epy_paper/data")
+_DATA = _Path("src/epy_papers/data")
 datas += [
-    (str(p), str(_Path("epy_paper") / p.relative_to("src/epy_paper").parent))
+    (str(p), str(_Path("epy_papers") / p.relative_to("src/epy_papers").parent))
     for p in _DATA.rglob("*")
     if p.is_file() and p.suffix != ".py"
 ]
@@ -48,21 +48,22 @@ if _sys.platform == "win32" and not _pandoc.lower().endswith(".exe"):
 binaries.append((_pandoc, "pypandoc/files"))
 
 hiddenimports = collect_submodules("pypandoc") + [
-    "epy_paper.assets",
-    "epy_paper.assets.csl",
-    "epy_paper.assets.latex",
-    "epy_paper.assets.templates",
-    "epy_paper.assets.reference_docx",
-    "epy_paper.assets.themes",
-    "epy_paper.assets.mathjax",
-    "epy_paper.data",
+    "epy_papers.assets",
+    "epy_papers.assets.branding",
+    "epy_papers.assets.csl",
+    "epy_papers.assets.latex",
+    "epy_papers.assets.templates",
+    "epy_papers.assets.reference_docx",
+    "epy_papers.assets.themes",
+    "epy_papers.assets.mathjax",
+    "epy_papers.data",
     "PIL",
     "PIL.Image",
     "yaml",
 ]
 
 a = Analysis(
-    ["src/epy_paper/__main__.py"],
+    ["src/epy_papers/__main__.py"],
     pathex=["src"],
     binaries=binaries,
     datas=datas,
@@ -83,7 +84,7 @@ pyz = PYZ(a.pure)
 exe = EXE(
     pyz, a.scripts, [],
     exclude_binaries=True,
-    name="epy_paper",
+    name="epy_papers",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -98,5 +99,5 @@ coll = COLLECT(
     strip=False,
     upx=False,
     upx_exclude=[],
-    name="epy_paper",
+    name="epy_papers",
 )

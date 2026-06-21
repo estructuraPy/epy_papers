@@ -2,7 +2,7 @@
 
 Every theme — for both the Qt chrome and the rendered preview — is
 derived from a layout file under ``assets/themes/*.epyson`` so that
-``epy_paper`` mirrors the visual identities defined by the document
+``epy_papers`` mirrors the visual identities defined by the document
 pipeline.
 
 Public API:
@@ -17,7 +17,7 @@ Public API:
 
 from __future__ import annotations
 
-from epy_paper.epyson import (
+from epy_papers.epyson import (
     apply_palette,
     build_epyson,
     delete_user_theme,
@@ -27,7 +27,7 @@ from epy_paper.epyson import (
     user_theme_ids,
     user_themes_dir,
 )
-from epy_paper.themes_base import Theme
+from epy_papers.themes_base import Theme
 
 DEFAULT_THEME_ID = "corporate"
 

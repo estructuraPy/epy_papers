@@ -6,7 +6,7 @@ import json
 from importlib import resources
 from pathlib import Path
 
-import epy_paper as ep
+import epy_papers as ep
 
 REQUIRED_FIELDS = [
     "name",
@@ -64,7 +64,7 @@ def test_every_profile_has_required_fields():
 def test_bundled_and_dev_catalog_are_identical():
     """src and repo-root copies of the catalog must stay in sync."""
     bundled = (
-        resources.files("epy_paper.data")
+        resources.files("epy_papers.data")
         .joinpath("journals.json")
         .read_text(encoding="utf-8")
     )
@@ -89,7 +89,7 @@ def test_referenced_csl_files_exist():
         name = prof.get("csl")
         if not name:
             continue
-        anchor = resources.files("epy_paper.assets.csl").joinpath(
+        anchor = resources.files("epy_papers.assets.csl").joinpath(
             f"{name}.csl"
         )
         assert anchor.is_file(), f"{jid} references missing CSL {name}"
@@ -98,7 +98,7 @@ def test_referenced_csl_files_exist():
 def test_leaf_objects_are_inline_single_line():
     """House style: each journal profile leaf stays on one JSON line."""
     text = (
-        resources.files("epy_paper.data")
+        resources.files("epy_papers.data")
         .joinpath("journals.json")
         .read_text(encoding="utf-8")
     )

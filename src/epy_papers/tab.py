@@ -1,4 +1,4 @@
-"""A single editor/preview tab for epy_paper."""
+"""A single editor/preview tab for epy_papers."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from epy_paper._authoring import split_front_matter
+from epy_papers._authoring import split_front_matter
 
 RENDER_DEBOUNCE_MS = 250
 POS_POLL_MS = 400
@@ -89,6 +89,24 @@ img { max-width: 100%; height: auto; }
 }
 .fmt-bar b { color: #243b53; }
 """
+
+
+@lru_cache(maxsize=1)
+def _design_css() -> str:
+    """Theme-driven CSS for the shared design blocks (cards, stats, ...).
+
+    Derived from the default suite theme so a big stat, card, timeline or
+    agenda inserted in a paper renders with the same vocabulary the slides
+    and reports apps use. Returns an empty string if the theme engine is
+    unavailable, so the preview degrades gracefully.
+    """
+    try:
+        from epy_papers import themes as _t  # noqa: PLC0415
+        from epy_papers._design import design_css  # noqa: PLC0415
+
+        return design_css(_t.get(_t.DEFAULT_THEME_ID), scope="")
+    except Exception:
+        return ""
 
 
 def _journal_css(profile: dict | None) -> str:
@@ -279,7 +297,7 @@ def _mathjax_block() -> str:
     )
     try:
         js = (
-            resources.files("epy_paper.assets.mathjax")
+            resources.files("epy_papers.assets.mathjax")
             .joinpath("tex-svg-full.js")
             .read_text(encoding="utf-8")
         )
@@ -364,12 +382,12 @@ def _build_preview_faithful(
     requires it. Raises when Pandoc is unavailable so the caller can fall back
     to the fast preview.
     """
-    from epy_paper import Paper  # noqa: PLC0415
-    from epy_paper._render import Renderer  # noqa: PLC0415
+    from epy_papers import Paper  # noqa: PLC0415
+    from epy_papers._render import Renderer  # noqa: PLC0415
 
     paper = Paper(text, base_dir)
     fragment = Renderer(paper.manuscript, profile or {}).to_html_fragment()
-    css = _journal_css(profile) + _BASE_CSS
+    css = _journal_css(profile) + _BASE_CSS + _design_css()
     line_numbers = _wants_line_numbers(profile)
     ln_css = _LINE_NUMBER_CSS if line_numbers else ""
     ln_js = _LINE_NUMBER_JS if line_numbers else ""
@@ -542,9 +560,9 @@ def _build_preview_html(text: str, profile: dict | None = None) -> str:
     if body_html:
         parts.append(f'<div class="body-section">{body_html}</div>')
 
-    page_title = _html.escape(title_str) if title_str else "epy_paper"
+    page_title = _html.escape(title_str) if title_str else "epy_papers"
     body_content = "\n".join(parts)
-    css = _journal_css(profile) + _BASE_CSS
+    css = _journal_css(profile) + _BASE_CSS + _design_css()
     fmt_bar = f'<div class="fmt-bar">{_format_summary(profile)}</div>'
 
     return (
@@ -776,6 +794,13 @@ class PaperTab(QWidget):
         tmpl = "\n```python\n# code here\n```\n"
         self._insert_raw(tmpl)
 
+    def insert_design_block(self, kind: str = "stat") -> None:
+        """Insert a shared design block (card, big stat, timeline, ...)."""
+        from epy_papers._design import design_block  # noqa: PLC0415
+
+        skeleton, token = design_block(kind)
+        self._insert_template(skeleton, token)
+
     def insert_title_block(self) -> None:
         """Insert a YAML front matter template at the cursor."""
         tmpl = (
@@ -952,7 +977,7 @@ class PaperTab(QWidget):
                 )
         if self._preview_tmp_dir is None:
             self._preview_tmp_dir = Path(
-                tempfile.mkdtemp(prefix="epy_paper_preview_")
+                tempfile.mkdtemp(prefix="epy_papers_preview_")
             )
         preview_path = self._preview_tmp_dir / "preview.html"
         preview_path.write_text(html, encoding="utf-8")

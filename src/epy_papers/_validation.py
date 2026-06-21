@@ -4,7 +4,7 @@
 :class:`Warning` records (each with a ``code``, ``severity`` and
 human-readable ``message``) instead of plain strings, so callers can filter
 and present them. Validation never blocks: every surveyed journal phrases its
-rules as recommendations, so epy_paper reports rather than refuses.
+rules as recommendations, so epy_papers reports rather than refuses.
 """
 
 from __future__ import annotations
@@ -90,7 +90,7 @@ def validate(
     """Validate ``manuscript`` against a journal ``profile``.
 
     ``profile`` is anything exposing ``get(key, default)`` and a ``name``
-    attribute (the :class:`~epy_paper.JournalProfile` view satisfies this).
+    attribute (the :class:`~epy_papers.JournalProfile` view satisfies this).
     """
     res = ValidationResult(
         journal_id=journal_id,

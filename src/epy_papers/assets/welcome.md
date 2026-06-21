@@ -1,7 +1,7 @@
 ---
 title:
-  en: "epy_paper User Manual"
-  es: "Manual de usuario epy_paper"
+  en: "epy_papers User Manual"
+  es: "Manual de usuario epy_papers"
 language: en
 authors:
   - name: "Ing. Angel Navarro-Mora M.Sc."
@@ -11,14 +11,14 @@ authors:
     corresponding: true
 abstract:
   en: >
-    epy_paper is a Python library and desktop editor for authoring
+    epy_papers is a Python library and desktop editor for authoring
     journal submission manuscripts from a single Markdown source.
     The author writes once and exports a journal-compliant draft for
     any of the 50 supported journals, driven by per-journal profiles.
     This manual documents the public API, the authoring format, the
     desktop editor, and the export workflow.
   es: >
-    epy_paper es una librería Python y editor de escritorio para la
+    epy_papers es una librería Python y editor de escritorio para la
     redacción de manuscritos de revistas científicas a partir de una
     única fuente Markdown. El autor escribe una vez y exporta un
     borrador conforme a la revista para cualquiera de las 50 revistas
@@ -45,19 +45,19 @@ bibliography: refs.bib
 
 # Introduction
 
-epy_paper solves a practical problem faced by every researcher who submits to
+epy_papers solves a practical problem faced by every researcher who submits to
 multiple journals: formatting. The manuscript content — title, abstract, body,
 references — is always the same. What changes is the layout, the citation style,
 the font, and the structural requirements of each journal.
 
-The epy_paper approach is simple: write the full paper **once** in a structured
+The epy_papers approach is simple: write the full paper **once** in a structured
 Markdown format, then export a journal-compliant **draft** for each target venue.
 A draft is a ready-to-submit Word, LaTeX, or PDF file styled according to the
 journal's requirements. The editorial team handles the final typesetting into two
 columns and the publisher's house style; what you deliver is a clean,
 well-structured manuscript, not a pixel-perfect copy of the journal layout.
 
-This document is itself written in the epy_paper authoring format. You can read
+This document is itself written in the epy_papers authoring format. You can read
 it in the live preview on the right, use the toolbar menus to insert elements,
 and open this buffer as a starting point for your own paper.
 
@@ -187,7 +187,7 @@ The result follows from classical beam theory [@timoshenko_1951].
 
 # Public API
 
-epy_paper exposes a clean, minimal Python API. All public symbols are
+epy_papers exposes a clean, minimal Python API. All public symbols are
 importable from the top-level package.
 
 ## Paper Class
@@ -196,7 +196,7 @@ The central class is `Paper`. It wraps a manuscript source and provides
 methods for validation and export.
 
 ```python
-from epy_paper import Paper
+from epy_papers import Paper
 
 # Create from source text
 paper = Paper(source_text, base_dir=Path("."))
@@ -293,7 +293,7 @@ for note in notes:
 ### available_journals
 
 ```python
-from epy_paper import available_journals
+from epy_papers import available_journals
 
 journals = available_journals()
 # Returns: [("asce_journal_structural_engineering", "ASCE Journal of ..."), ...]
@@ -305,7 +305,7 @@ journal profiles, sorted alphabetically by name.
 ### journal_profile
 
 ```python
-from epy_paper import journal_profile
+from epy_papers import journal_profile
 
 profile = journal_profile("ieee_access")
 # Returns: {"name": "IEEE Access", "formats": ["docx", "tex"], ...}
@@ -316,7 +316,7 @@ Returns the raw profile dictionary for a given journal id.
 ### load_journals
 
 ```python
-from epy_paper import load_journals
+from epy_papers import load_journals
 
 all_profiles = load_journals()
 # Returns: {"asce_journal_structural_engineering": {...}, ...}
@@ -328,7 +328,7 @@ stripped (they are internal metadata).
 ### add_journal
 
 ```python
-from epy_paper import add_journal, available_journals
+from epy_papers import add_journal, available_journals
 
 add_journal(
     "my-journal",
@@ -339,7 +339,7 @@ add_journal(
 ```
 
 Adds or updates a journal profile in the writable user catalog
-(`~/.epy_paper/journals.json`, or `$EPY_PAPER_USER_JOURNALS`), merged on top of
+(`~/.epy_papers/journals.json`, or `$EPY_PAPERS_USER_JOURNALS`), merged on top of
 the bundled catalog so it survives app updates. In the desktop editor the **+**
 button beside the Journal selector opens a dialog that does the same, and the
 new journal appears in the selector immediately. `remove_user_journal(id)`
@@ -353,7 +353,7 @@ just validated but formatted ready to submit.
 ## Validation API
 
 ```python
-from epy_paper import Severity, Warning, ValidationResult
+from epy_papers import Severity, Warning, ValidationResult
 ```
 
 - `Severity.ERROR` — must be fixed before submission
@@ -369,7 +369,7 @@ returns `"[SEVERITY] message"`.
 ## Exception Classes
 
 ```python
-from epy_paper import PandocMissingError
+from epy_papers import PandocMissingError
 ```
 
 Raised by `Paper.to_draft` and `Paper.render_notes` when Pandoc is not
@@ -378,21 +378,21 @@ found on the system PATH or via `pypandoc-binary`.
 
 # Desktop Editor
 
-The epy_paper desktop editor (`python -m epy_paper`) provides a
+The epy_papers desktop editor (`python -m epy_papers`) provides a
 multi-tab Markdown editor with a live academic preview on the right side.
 
 ## Starting the Editor
 
 ```bash
-python -m epy_paper                  # open with welcome tab
-python -m epy_paper manuscript.md    # open a specific file
-python -m epy_paper --version        # print version
+python -m epy_papers                  # open with welcome tab
+python -m epy_papers manuscript.md    # open a specific file
+python -m epy_papers --version        # print version
 ```
 
 Or use the installed GUI entry point:
 
 ```bash
-epy_paper manuscript.md
+epy_papers manuscript.md
 ```
 
 ## Toolbar Menus
@@ -496,7 +496,7 @@ paper.to_draft("nature", Path("preview.html"), fmt="html")
 
 # Supported Journals
 
-epy_paper bundles 50 journal profiles covering major civil, structural,
+epy_papers bundles 50 journal profiles covering major civil, structural,
 and multidisciplinary engineering venues. A few examples:
 
 | ID | Journal Name |
@@ -514,12 +514,12 @@ Use `available_journals()` to get the full list programmatically.
 
 # Figure Example
 
-The figure below illustrates the epy_paper workflow: the author writes
+The figure below illustrates the epy_papers workflow: the author writes
 once in Markdown, selects a journal from the dropdown, and exports a
 compliant draft. The journal profile controls the template, citation
 style, and validation rules.
 
-![Figure 1: epy_paper export workflow](figures/workflow.png){#fig-1 width=80%}
+![Figure 1: epy_papers export workflow](figures/workflow.png){#fig-1 width=80%}
 
 
 # Table Example
@@ -539,7 +539,7 @@ Table @tbl-1 summarizes the supported export formats.
 # Equation Example
 
 The energy-mass equivalence from special relativity (@eq-1) is a classic
-example of a display equation in epy_paper:
+example of a display equation in epy_papers:
 
 $$
 E = mc^2
@@ -552,12 +552,12 @@ package with math extensions for richer preview rendering.
 
 # Code Example
 
-The following snippet shows a complete end-to-end usage of the epy_paper
+The following snippet shows a complete end-to-end usage of the epy_papers
 API:
 
 ```python
 from pathlib import Path
-from epy_paper import Paper, available_journals
+from epy_papers import Paper, available_journals
 
 # List all supported journals
 for jid, jname in available_journals():
@@ -596,7 +596,7 @@ For multiple citations, use a semicolon-separated list:
 
 # Quick-Start Checklist
 
-1. Open epy_paper from the command line: `python -m epy_paper`
+1. Open epy_papers from the command line: `python -m epy_papers`
 2. Use **Paper > Insert Title Block** to insert the front-matter template.
 3. Fill in your title, authors, abstract, keywords, and bibliography path.
 4. Write your paper body in Markdown using the Paper menu to insert

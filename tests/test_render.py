@@ -5,9 +5,9 @@ Pandoc-dependent tests skip gracefully when Pandoc is absent.
 
 from __future__ import annotations
 
-import epy_paper as ep
+import epy_papers as ep
 from _pandoc import needs_pandoc
-from epy_paper._render import Renderer
+from epy_papers._render import Renderer
 
 SIMPLE = (
     "---\ntitle: {en: A test manuscript}\n"

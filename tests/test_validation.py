@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import epy_paper as ep
-from epy_paper import Severity, ValidationResult
+import epy_papers as ep
+from epy_papers import Severity, ValidationResult
 
 
 def _codes(result: ValidationResult) -> set[str]:

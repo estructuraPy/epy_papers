@@ -1,9 +1,9 @@
-"""epy_paper — write a paper once, export a journal-compliant submission draft.
+"""epy_papers — write a paper once, export a journal-compliant draft.
 
 Single public API for the suite (mirrors ``epy_reports.Report`` /
 ``epy_slides.SlideDeck`` / ``epy_project.ProjectManager``)::
 
-    from epy_paper import Paper, available_journals
+    from epy_papers import Paper, available_journals
 
     available_journals()                       # [(id, name), ...]
     paper = Paper.from_file("manuscript.md")
@@ -11,12 +11,12 @@ Single public API for the suite (mirrors ``epy_reports.Report`` /
     paper.to_draft("eng-structures", "draft.docx")   # or fmt="tex"/"pdf"
 
 The published two-column typeset is produced by the publisher, never the
-author; epy_paper produces the *submission manuscript* (single column,
+author; epy_papers produces the *submission manuscript* (single column,
 double-spaced, line-numbered, the journal's citation style and page size),
 driven by a per-journal **profile** in ``data/journals.json``. The author's
 source is one Markdown file whose YAML front matter models bilingual
 ``title`` / ``abstract`` / ``keywords``, ``highlights`` and ``declarations``
-(see :mod:`epy_paper._authoring` and ``REQUIREMENTS.md``).
+(see :mod:`epy_papers._authoring` and ``REQUIREMENTS.md``).
 """
 
 from __future__ import annotations
@@ -61,14 +61,14 @@ __all__ = [
 def user_journals_path() -> Path:
     """Return the writable catalog where user-added journals are stored.
 
-    Defaults to ``~/.epy_paper/journals.json``; override with the
-    ``EPY_PAPER_USER_JOURNALS`` environment variable. User journals persist
+    Defaults to ``~/.epy_papers/journals.json``; override with the
+    ``EPY_PAPERS_USER_JOURNALS`` environment variable. User journals persist
     across app updates and merge on top of the bundled catalog.
     """
-    override = os.environ.get("EPY_PAPER_USER_JOURNALS")
+    override = os.environ.get("EPY_PAPERS_USER_JOURNALS")
     if override:
         return Path(override)
-    return Path.home() / ".epy_paper" / "journals.json"
+    return Path.home() / ".epy_papers" / "journals.json"
 
 
 def load_user_journals() -> dict[str, dict[str, Any]]:
@@ -91,7 +91,7 @@ def load_journals() -> dict[str, dict[str, Any]]:
     touching the shipped data.
     """
     text = (
-        resources.files("epy_paper.data")
+        resources.files("epy_papers.data")
         .joinpath("journals.json")
         .read_text(encoding="utf-8")
     )
@@ -218,7 +218,7 @@ class Paper:
     The source is the author's "final" content: one Markdown file whose YAML
     front matter models ``title`` / ``abstract`` / ``keywords`` (each plain or
     bilingual ``{es, en}``), ``authors``, ``highlights``, ``declarations`` and
-    ``bibliography``. See :class:`epy_paper.Manuscript`.
+    ``bibliography``. See :class:`epy_papers.Manuscript`.
     """
 
     def __init__(self, source: str, base_dir: Path | None = None) -> None:

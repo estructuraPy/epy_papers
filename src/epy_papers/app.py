@@ -1,4 +1,4 @@
-"""epy_paper GUI: multi-tab paper authoring editor."""
+"""epy_papers GUI: multi-tab paper authoring editor."""
 
 from __future__ import annotations
 
@@ -12,6 +12,7 @@ from PySide6.QtGui import (
     QAction,
     QActionGroup,
     QColor,
+    QIcon,
     QKeySequence,
 )
 from PySide6.QtWidgets import (
@@ -35,14 +36,15 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from epy_paper import _i18n as i18n
+from epy_papers import _i18n as i18n
 
-# epy_paper bundles its own copy of the suite theme system, so the app keeps
+# epy_papers bundles its own copy of the suite theme system, so the app keeps
 # the same Fluent/WinUI appearance as epy_reports / epy_slides regardless of
 # whether the sibling apps are installed alongside it.
-from epy_paper import themes as _themes
+from epy_papers import themes as _themes
+from epy_papers.about_dialog import _load_branding_pixmap
 
-APP_NAME = "epy_paper"
+APP_NAME = "epy_papers"
 
 SUPPORTED_EXTENSIONS = {".md", ".markdown"}
 
@@ -55,7 +57,7 @@ def _load_welcome_text() -> str:
     """Load the bundled welcome.md, returning empty string on failure."""
     try:
         return (
-            importlib.resources.files("epy_paper.assets")
+            importlib.resources.files("epy_papers.assets")
             .joinpath("welcome.md")
             .read_text(encoding="utf-8")
         )
@@ -75,10 +77,14 @@ class PaperWindow(QMainWindow):
         self.setWindowTitle(APP_NAME)
         self.resize(1300, 840)
 
-        self._settings = QSettings("ANM Ingeniería", "epy_paper")
+        logo_pix = _load_branding_pixmap("epy_papers.png")
+        if not logo_pix.isNull():
+            self.setWindowIcon(QIcon(logo_pix))
+
+        self._settings = QSettings("ANM Ingeniería", "epy_papers")
 
         # Lazy import to avoid Qt initialisation order issues.
-        from epy_paper.tab import PaperTab  # noqa: PLC0415
+        from epy_papers.tab import PaperTab  # noqa: PLC0415
 
         self._PaperTab = PaperTab
 
@@ -232,6 +238,24 @@ class PaperWindow(QMainWindow):
             lambda: self._on_active_tab("insert_code_block")
         )
 
+        # Shared design blocks (cards, big stats, timelines, agendas) — the
+        # same insert options epy_reports and epy_slides expose, one engine.
+        from epy_papers._design import (  # noqa: PLC0415
+            DESIGN_BLOCK_LABELS,
+            DESIGN_BLOCKS,
+        )
+
+        self.design_actions: dict[str, QAction] = {}
+        for kind in DESIGN_BLOCKS:
+            label = DESIGN_BLOCK_LABELS.get(kind, kind.title())
+            act = QAction(label, self)
+            act.triggered.connect(
+                lambda _checked=False, k=kind: self._on_active_tab(
+                    "insert_design_block", k
+                )
+            )
+            self.design_actions[kind] = act
+
         self.act_new_journal = QAction("Add Journal...", self)
         self.act_new_journal.triggered.connect(self._new_journal)
 
@@ -258,7 +282,7 @@ class PaperWindow(QMainWindow):
             lambda: self._open_manual("welcome_es.md")
         )
 
-        self.act_about = QAction("About epy_paper...", self)
+        self.act_about = QAction("About epy_papers...", self)
         self.act_about.triggered.connect(self._show_about)
 
         # Language radio group
@@ -329,6 +353,9 @@ class PaperWindow(QMainWindow):
         self.paper_menu.addAction(self.act_ins_equation)
         self.paper_menu.addAction(self.act_ins_citation)
         self.paper_menu.addAction(self.act_ins_code)
+        self.design_sub = self.paper_menu.addMenu("Design block")
+        for act in self.design_actions.values():
+            self.design_sub.addAction(act)
         self.paper_menu.addSeparator()
         self.paper_menu.addAction(self.act_new_journal)
 
@@ -415,7 +442,7 @@ class PaperWindow(QMainWindow):
 
     def _build_journal_combo(self) -> QComboBox:
         """Build and return a journal QComboBox populated from catalog."""
-        from epy_paper import available_journals  # noqa: PLC0415
+        from epy_papers import available_journals  # noqa: PLC0415
 
         combo = QComboBox()
         combo.setMinimumWidth(220)
@@ -446,7 +473,7 @@ class PaperWindow(QMainWindow):
         if not jid:
             return None
         try:
-            from epy_paper import journal_profile  # noqa: PLC0415
+            from epy_papers import journal_profile  # noqa: PLC0415
 
             return journal_profile(jid)
         except Exception:
@@ -455,7 +482,7 @@ class PaperWindow(QMainWindow):
     def _apply_journal_to_tabs(self) -> None:
         """Push the selected journal's format to every open tab's preview."""
         profile = self._current_profile()
-        from epy_paper.tab import PaperTab  # noqa: PLC0415
+        from epy_papers.tab import PaperTab  # noqa: PLC0415
 
         for i in range(self.tabs.count()):
             widget = self.tabs.widget(i)
@@ -471,7 +498,7 @@ class PaperWindow(QMainWindow):
 
     def _refresh_journal_combo(self, select_id: str | None = None) -> None:
         """Rebuild the journal combo from the catalog, keeping a selection."""
-        from epy_paper import available_journals  # noqa: PLC0415
+        from epy_papers import available_journals  # noqa: PLC0415
 
         combo = self._journal_combo
         keep = select_id or self._current_journal_id()
@@ -610,7 +637,7 @@ class PaperWindow(QMainWindow):
             "latex_class": "",
         }
         try:
-            from epy_paper import add_journal  # noqa: PLC0415
+            from epy_papers import add_journal  # noqa: PLC0415
 
             add_journal(jid, profile)
         except Exception as exc:
@@ -659,7 +686,7 @@ class PaperWindow(QMainWindow):
         if not journal_id:
             return
         try:
-            from epy_paper import Paper  # noqa: PLC0415
+            from epy_papers import Paper  # noqa: PLC0415
 
             base_dir = tab.path.parent if tab.path else None
             paper = Paper(text, base_dir)
@@ -850,7 +877,7 @@ class PaperWindow(QMainWindow):
         target = Path(filename)
         if not target.suffix:
             target = target.with_suffix(".html")
-        from epy_paper.tab import _build_preview_html  # noqa: PLC0415
+        from epy_papers.tab import _build_preview_html  # noqa: PLC0415
 
         try:
             html = _build_preview_html(tab.text(), self._current_profile())
@@ -867,7 +894,7 @@ class PaperWindow(QMainWindow):
         self, tab, target: Path, fmt: str
     ) -> None:
         """Run paper.to_draft for the given format and report result."""
-        from epy_paper import Paper  # noqa: PLC0415
+        from epy_papers import Paper  # noqa: PLC0415
 
         text = tab.text()
         base_dir = tab.path.parent if tab.path else None
@@ -888,30 +915,10 @@ class PaperWindow(QMainWindow):
     # ------------------------------------------ About dialog
 
     def _show_about(self) -> None:
-        """Show a simple About epy_paper dialog."""
-        try:
-            from epy_paper import __version__  # noqa: PLC0415
-        except Exception:
-            __version__ = "0.1.0"
+        """Open the About epy_papers dialog modally."""
+        from epy_papers.about_dialog import AboutDialog  # noqa: PLC0415
 
-        dlg = QDialog(self)
-        dlg.setWindowTitle("About epy_paper")
-        dlg.setMinimumWidth(360)
-        layout = QVBoxLayout(dlg)
-
-        layout.addWidget(QLabel(f"<b>epy_paper</b> v{__version__}"))
-        layout.addWidget(
-            QLabel("Paper authoring editor with live preview")
-        )
-        layout.addWidget(
-            QLabel(
-                "Author: Ing. Angel Navarro-Mora M.Sc.<br>"
-                "Contact: ahnavarroitcr@gmail.com"
-            )
-        )
-        btn = QPushButton("Close")
-        btn.clicked.connect(dlg.accept)
-        layout.addWidget(btn)
+        dlg = AboutDialog(self)
         dlg.exec()
 
     # ------------------------------------------ Help / manuals
@@ -920,7 +927,7 @@ class PaperWindow(QMainWindow):
         """Open a bundled manual document in a new tab."""
         try:
             text = (
-                importlib.resources.files("epy_paper.assets")
+                importlib.resources.files("epy_papers.assets")
                 .joinpath(filename)
                 .read_text(encoding="utf-8")
             )
@@ -980,7 +987,7 @@ class PaperWindow(QMainWindow):
 
     def _current_tab(self):
         """Return the currently visible PaperTab, if any."""
-        from epy_paper.tab import PaperTab  # noqa: PLC0415
+        from epy_papers.tab import PaperTab  # noqa: PLC0415
 
         widget = self.tabs.currentWidget()
         if isinstance(widget, PaperTab):
@@ -1022,7 +1029,7 @@ class PaperWindow(QMainWindow):
             )
             return
         path = path.resolve()
-        from epy_paper.tab import PaperTab  # noqa: PLC0415
+        from epy_papers.tab import PaperTab  # noqa: PLC0415
 
         for i in range(self.tabs.count()):
             existing = self.tabs.widget(i)
@@ -1127,7 +1134,7 @@ class PaperWindow(QMainWindow):
 
     def _close_tab_at(self, index: int) -> None:
         """Handle the close button on a specific tab."""
-        from epy_paper.tab import PaperTab  # noqa: PLC0415
+        from epy_papers.tab import PaperTab  # noqa: PLC0415
 
         widget = self.tabs.widget(index)
         if not isinstance(widget, PaperTab):
@@ -1148,7 +1155,7 @@ class PaperWindow(QMainWindow):
 
     def closeEvent(self, event) -> None:  # noqa: N802
         """Prompt to save every dirty tab before exiting."""
-        from epy_paper.tab import PaperTab  # noqa: PLC0415
+        from epy_papers.tab import PaperTab  # noqa: PLC0415
 
         for i in range(self.tabs.count()):
             widget = self.tabs.widget(i)
@@ -1175,9 +1182,9 @@ class PaperWindow(QMainWindow):
 
 
 def main(argv: list[str] | None = None) -> int:
-    """Entry point for the epy_paper console/GUI script."""
+    """Entry point for the epy_papers console/GUI script."""
     parser = argparse.ArgumentParser(
-        prog="epy_paper",
+        prog="epy_papers",
         description="Paper authoring editor.",
     )
     parser.add_argument(
@@ -1192,13 +1199,16 @@ def main(argv: list[str] | None = None) -> int:
 
     if args.version:
         try:
-            from epy_paper import __version__  # noqa: PLC0415
+            from epy_papers import __version__  # noqa: PLC0415
         except Exception:
             __version__ = "0.1.0"
-        print(f"epy_paper {__version__}")
+        print(f"epy_papers {__version__}")
         return 0
 
     app = QApplication.instance() or QApplication(sys.argv)
+    logo_pix = _load_branding_pixmap("epy_papers.png")
+    if not logo_pix.isNull():
+        app.setWindowIcon(QIcon(logo_pix))
     win = PaperWindow()
     win.show()
     for f in args.files:

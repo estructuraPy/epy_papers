@@ -1,5 +1,5 @@
 ---
-# Replication fixture for epy_paper. Based on a real publication used purely
+# Replication fixture for epy_papers. Based on a real publication used purely
 # as a submission-format test target (no relationship to the venue):
 #   Navarro-Mora, A. (2024). "Indice de salud estructural de puentes (BHI)."
 #   Revista Tecnologia en Marcha, 37(2). DOI 10.18845/tm.v37i2.6718

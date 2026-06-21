@@ -1,4 +1,4 @@
-"""Build a Debian .deb package for epy_paper.
+"""Build a Debian .deb package for epy_papers.
 
 This script is a pure-Python, cross-platform .deb assembler — it can be run
 on Windows (to build a .deb for Linux) or directly on a Debian/Ubuntu host.
@@ -14,7 +14,7 @@ Run from the project root:
     python installer/linux/build_deb.py
 
 Output:
-    installer/dist/epy-paper_<version>_all.deb
+    installer/dist/epy-papers_<version>_all.deb
 
 The script prints a verification listing of the ar members at the end.
 """
@@ -30,7 +30,7 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
-PKG_NAME = "epy-paper"
+PKG_NAME = "epy-papers"
 PKG_VERSION = "0.1.0"
 PKG_ARCH = "all"
 MAINTAINER = "Ing. Angel Navarro-Mora M.Sc. <ahnavarro@anmingenieria.com>"
@@ -38,7 +38,7 @@ DESCRIPTION_SHORT = (
     "Academic paper editor with journal-compliant draft export"
 )
 DESCRIPTION_LONG = """\
- epy_paper is a desktop paper-writing application built with PySide6.
+ epy_papers is a desktop paper-writing application built with PySide6.
  .
  Features:
   * Write a paper once, export a journal-compliant submission draft
@@ -49,10 +49,10 @@ DESCRIPTION_LONG = """\
   * Registers itself as a handler for .md and .markdown files
  .
  Installation note: system-wide MIME defaults require the user to run
- "xdg-mime default epy_paper.desktop text/markdown" in their own session,
- or to select epy_paper in their file manager's "Open With" dialog.
+ "xdg-mime default epy_papers.desktop text/markdown" in their own session,
+ or to select epy_papers in their file manager's "Open With" dialog.
  The postinst script updates system MIME and desktop caches and adds
- epy_paper to /usr/share/applications/defaults.list as a best-effort hint."""
+ epy_papers to /usr/share/applications/defaults.list as a best-effort hint."""
 
 # python3-venv is required so the postinst can build an isolated
 # virtual environment for the pip-only runtime deps (PEP 668: the
@@ -66,7 +66,7 @@ ROOT = Path(__file__).resolve().parent.parent.parent
 OUT_DIR = ROOT / "installer" / "dist"
 
 # Source tree roots
-SRC_PKG = ROOT / "src" / "epy_paper"
+SRC_PKG = ROOT / "src" / "epy_papers"
 
 # pypandoc location — pure-Python files only (no binaries)
 import pypandoc as _pypandoc  # noqa: E402
@@ -177,13 +177,13 @@ def _build_control_tar() -> bytes:
             #!/bin/sh
             set -e
 
-            VENV="/usr/lib/epy-paper/venv"
+            VENV="/usr/lib/epy-papers/venv"
 
             # PEP 668: the system Python on Debian 12+/Ubuntu 23.04+ is
             # marked externally-managed, so `pip install` into it fails.
             # Build a dedicated virtual environment for the pip-only
             # runtime dependencies — PySide6 (GUI) and PyYAML (front-matter
-            # parsing) — and let the launcher in /usr/bin/epy-paper run
+            # parsing) — and let the launcher in /usr/bin/epy-papers run
             # from it.  pandoc is provided by the apt `pandoc` dependency,
             # so pypandoc-binary's bundled binary is NOT needed here.
             if [ ! -d "$VENV" ]; then
@@ -197,28 +197,28 @@ def _build_control_tar() -> bytes:
                 update-mime-database /usr/share/mime || true
             fi
 
-            # Refresh the desktop file cache so epy_paper appears in menus.
+            # Refresh the desktop file cache so epy_papers appears in menus.
             if command -v update-desktop-database >/dev/null 2>&1; then
                 update-desktop-database /usr/share/applications || true
             fi
 
-            # Register epy_paper in /usr/share/applications/defaults.list as
+            # Register epy_papers in /usr/share/applications/defaults.list as
             # a best-effort system-wide hint.  Desktop environments that
-            # honour defaults.list (GNOME/XFCE/LXDE) will offer epy_paper
+            # honour defaults.list (GNOME/XFCE/LXDE) will offer epy_papers
             # when the user first opens a .md/.markdown file.
             #
             # NOTE: xdg-mime called here as root only sets the root user's
             # mimeapps.list, NOT individual users' defaults.  Each user must
-            # run "xdg-mime default epy_paper.desktop text/markdown" in their
-            # own session to make epy_paper their personal default, or simply
-            # choose "Open with > epy_paper > Always" in their file manager.
+            # run "xdg-mime default epy_papers.desktop text/markdown" in their
+            # own session to make epy_papers their personal default, or simply
+            # choose "Open with > epy_papers > Always" in their file manager.
             DEFAULTS="/usr/share/applications/defaults.list"
             if [ ! -f "$DEFAULTS" ]; then
                 echo "[Default Applications]" > "$DEFAULTS"
             fi
             for mime in text/markdown text/x-markdown; do
                 if ! grep -q "^${mime}=" "$DEFAULTS" 2>/dev/null; then
-                    echo "${mime}=epy_paper.desktop" >> "$DEFAULTS"
+                    echo "${mime}=epy_papers.desktop" >> "$DEFAULTS"
                 fi
             done
 
@@ -231,12 +231,12 @@ def _build_control_tar() -> bytes:
             #!/bin/sh
             set -e
 
-            # Remove epy_paper entries from /usr/share/applications/defaults.list
+            # Remove epy_papers entries from /usr/share/applications/defaults.list
             DEFAULTS="/usr/share/applications/defaults.list"
             if [ -f "$DEFAULTS" ]; then
-                sed -i '/^text\\/markdown=epy_paper.desktop$/d' \
+                sed -i '/^text\\/markdown=epy_papers.desktop$/d' \
                     "$DEFAULTS" || true
-                sed -i '/^text\\/x-markdown=epy_paper.desktop$/d' \
+                sed -i '/^text\\/x-markdown=epy_papers.desktop$/d' \
                     "$DEFAULTS" || true
             fi
 
@@ -253,8 +253,8 @@ def _build_control_tar() -> bytes:
             # time, so dpkg does not track it.  Remove it on uninstall /
             # purge and drop the now-empty package directory.
             if [ "$1" = "remove" ] || [ "$1" = "purge" ]; then
-                rm -rf /usr/lib/epy-paper/venv
-                rmdir /usr/lib/epy-paper 2>/dev/null || true
+                rm -rf /usr/lib/epy-papers/venv
+                rmdir /usr/lib/epy-papers 2>/dev/null || true
             fi
 
             exit 0
@@ -277,7 +277,7 @@ def _build_data_tar(png_path: Path) -> bytes:
             "./usr/bin",
             "./usr/lib",
             f"./usr/lib/{PKG_NAME}",
-            f"./usr/lib/{PKG_NAME}/epy_paper",
+            f"./usr/lib/{PKG_NAME}/epy_papers",
             f"./usr/lib/{PKG_NAME}/pypandoc",
             "./usr/share",
             "./usr/share/applications",
@@ -290,25 +290,25 @@ def _build_data_tar(png_path: Path) -> bytes:
         ]:
             _tar_add_dir(tf, d)
 
-        # /usr/bin/epy-paper launcher shell script.
+        # /usr/bin/epy-papers launcher shell script.
         # Run from the dedicated virtualenv the postinst builds: it holds
         # PySide6/PyYAML (PEP 668 keeps these out of the system Python).
-        # sys.path is extended with /usr/lib/epy-paper so the bundled
-        # epy_paper package and pypandoc shim are importable on top of
+        # sys.path is extended with /usr/lib/epy-papers so the bundled
+        # epy_papers package and pypandoc shim are importable on top of
         # the venv's site-packages.
         launcher = textwrap.dedent("""\
             #!/bin/sh
-            exec /usr/lib/epy-paper/venv/bin/python \
-                -c "import sys; sys.path.insert(0, '/usr/lib/epy-paper'); \
-from epy_paper.app import main; sys.exit(main())" "$@"
+            exec /usr/lib/epy-papers/venv/bin/python \
+                -c "import sys; sys.path.insert(0, '/usr/lib/epy-papers'); \
+from epy_papers.app import main; sys.exit(main())" "$@"
         """)
         _tar_add_data(
             tf, f"./usr/bin/{PKG_NAME}", launcher.encode(), mode=0o755
         )
 
-        # epy_paper Python package
+        # epy_papers Python package
         _tar_add_tree(
-            tf, SRC_PKG, f"./usr/lib/{PKG_NAME}/epy_paper"
+            tf, SRC_PKG, f"./usr/lib/{PKG_NAME}/epy_papers"
         )
 
         # pypandoc — pure-Python only; the pandoc binary is NOT vendored
@@ -336,10 +336,10 @@ from epy_paper.app import main; sys.exit(main())" "$@"
             [Desktop Entry]
             Version=1.0
             Type=Application
-            Name=epy_paper
+            Name=epy_papers
             Comment={DESCRIPTION_SHORT}
-            Exec=epy-paper %F
-            Icon=epy_paper
+            Exec=epy-papers %F
+            Icon=epy_papers
             Terminal=false
             Categories=Office;TextEditor;
             MimeType=text/markdown;text/x-markdown;
@@ -347,7 +347,7 @@ from epy_paper.app import main; sys.exit(main())" "$@"
         """)
         _tar_add_data(
             tf,
-            "./usr/share/applications/epy_paper.desktop",
+            "./usr/share/applications/epy_papers.desktop",
             desktop.encode(),
             mode=0o644,
         )
@@ -369,7 +369,7 @@ from epy_paper.app import main; sys.exit(main())" "$@"
         """)
         _tar_add_data(
             tf,
-            "./usr/share/mime/packages/epy_paper.xml",
+            "./usr/share/mime/packages/epy_papers.xml",
             mime_xml.encode(),
             mode=0o644,
         )
@@ -379,7 +379,7 @@ from epy_paper.app import main; sys.exit(main())" "$@"
             icon_data = png_path.read_bytes()
             _tar_add_data(
                 tf,
-                "./usr/share/icons/hicolor/256x256/apps/epy_paper.png",
+                "./usr/share/icons/hicolor/256x256/apps/epy_papers.png",
                 icon_data,
                 mode=0o644,
             )
@@ -437,7 +437,7 @@ def _verify_deb(path: Path) -> None:
 
 def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    png_path = ROOT / "assets_build" / "epy_paper.png"
+    png_path = ROOT / "assets_build" / "epy_papers.png"
 
     print("Building control.tar.gz ...")
     control_tar = _build_control_tar()

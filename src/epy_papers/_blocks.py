@@ -181,7 +181,7 @@ def _resolved_langs(ms: Manuscript, profile) -> list[str]:
 def compose_manuscript(ms: Manuscript, profile) -> ManuscriptDoc:
     """Compose the submission-ready Markdown for one journal profile.
 
-    ``profile`` is a :class:`~epy_paper.JournalProfile`-like object exposing
+    ``profile`` is a :class:`~epy_papers.JournalProfile`-like object exposing
     ``get(key, default)``.
     """
     blinded = str(profile.get("blinding", "none")) in {"double", "blind"}

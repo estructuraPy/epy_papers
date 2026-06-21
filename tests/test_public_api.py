@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-import epy_paper as ep
+import epy_papers as ep
 
 
 def test_public_names_present():

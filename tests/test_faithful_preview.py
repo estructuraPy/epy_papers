@@ -16,7 +16,7 @@ def _pandoc_available() -> bool:
 
 
 def test_mathjax_block_bundled():
-    from epy_paper.tab import _mathjax_block
+    from epy_papers.tab import _mathjax_block
 
     block = _mathjax_block()
     assert "window.MathJax" in block
@@ -27,8 +27,8 @@ def test_mathjax_block_bundled():
 def test_to_html_fragment_renders_body():
     if not _pandoc_available():
         pytest.skip("pandoc not available")
-    from epy_paper._authoring import Manuscript
-    from epy_paper._render import Renderer
+    from epy_papers._authoring import Manuscript
+    from epy_papers._render import Renderer
 
     src = (
         "---\ntitle: Faithful Test\nabstract: An abstract.\n---\n\n"
@@ -45,7 +45,7 @@ def test_to_html_fragment_renders_body():
 def test_faithful_preview_wraps_in_page_with_mathjax():
     if not _pandoc_available():
         pytest.skip("pandoc not available")
-    from epy_paper.tab import _build_preview_faithful
+    from epy_papers.tab import _build_preview_faithful
 
     src = (
         "---\ntitle: T\nabstract: A.\n---\n\n"
@@ -63,7 +63,7 @@ def test_faithful_preview_wraps_in_page_with_mathjax():
 def test_faithful_preview_no_line_numbers_when_off():
     if not _pandoc_available():
         pytest.skip("pandoc not available")
-    from epy_paper.tab import _build_preview_faithful
+    from epy_papers.tab import _build_preview_faithful
 
     src = "---\ntitle: T\nabstract: A.\n---\n\nBody.\n"
     html = _build_preview_faithful(src, {"name": "J", "line_numbers": "off"})

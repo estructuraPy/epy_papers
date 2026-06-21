@@ -1,4 +1,4 @@
-# epy_paper — Minimum requirements for the paper publication system
+# epy_papers — Minimum requirements for the paper publication system
 
 **Author / credit:** Ing. Angel Navarro-Mora M.Sc. · ANM Ingeniería
 **Status:** requirements derived from a survey of 30+ journals (see
@@ -16,7 +16,7 @@ The decisive finding of the survey is that **the published two-column typeset
 layout is produced by the publisher, not the author**. The author's job is the
 **submission manuscript**, and across virtually every journal the submission
 manuscript follows one small, recurring template that is then parameterised per
-journal. So epy_paper does NOT need to reproduce 30 different final layouts — it
+journal. So epy_papers does NOT need to reproduce 30 different final layouts — it
 needs ONE good manuscript engine with a handful of tunable parameters, plus a
 per-journal **profile** that sets those parameters.
 
@@ -135,7 +135,7 @@ matter (everything the submission draft needs, journal-independent) followed by
 a Markdown body. Title / abstract / keywords accept either a plain scalar
 (single language) or an ``{es, en}`` mapping (bilingual); ``language`` (default
 ``en``) names the primary variant, and the journal profile decides whether BOTH
-are emitted. See `src/epy_paper/_authoring.py` and the fixtures under
+are emitted. See `src/epy_papers/_authoring.py` and the fixtures under
 `tests/fixtures/`.
 
 ```yaml
@@ -174,7 +174,7 @@ bibliography: refs.bib
 Body text with citations [@key] ...
 ```
 
-**Content blocks the engine assembles per profile** (`src/epy_paper/_blocks.py`):
+**Content blocks the engine assembles per profile** (`src/epy_papers/_blocks.py`):
 title page (author identity stripped when double-blind), bilingual
 title/abstract/keywords (both languages when the profile is bilingual, primary
 first), Highlights list (when the profile requests it), and a Declarations
@@ -186,7 +186,7 @@ Context).
 
 One universal manuscript (single column, double spaced, continuous line
 numbers, 12 pt serif, Letter/A4) parameterised per profile
-(`src/epy_paper/_render.py`):
+(`src/epy_papers/_render.py`):
 
 - **DOCX** — Pandoc + a generated reference document
   (`assets/reference_docx/submission.docx`, built by
@@ -206,7 +206,7 @@ numbers, 12 pt serif, Letter/A4) parameterised per profile
 
 `Paper.validate(journal)` returns a typed `ValidationResult` of `Warning`
 records (`code`, `severity`, `message`) instead of plain strings
-(`src/epy_paper/_validation.py`). It checks: abstract word count (per language),
+(`src/epy_papers/_validation.py`). It checks: abstract word count (per language),
 title char limit, keyword min/max, highlights count and per-item char limit,
 bilingual presence when required, required declarations present, double-blind
 compliance (author identity removed), page size and citation style. It never
@@ -214,7 +214,7 @@ blocks — every surveyed journal phrases its rules as recommendations.
 
 ## 7. Ecosystem conventions (must follow)
 
-- **One public API** per the suite convention: `from epy_paper import PaperWriter`
+- **One public API** per the suite convention: `from epy_papers import PaperWriter`
   (a single facade), mirroring `epy_reports`, `epy_slides`, `epy_project`, etc.
 - Licensing, packaging (PyInstaller onedir + Inno Setup + `.deb`), themes and
   bilingual UI follow the same standards as epy_reports/epy_slides.

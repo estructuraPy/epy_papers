@@ -5,7 +5,7 @@ English is the source language and the lookup key; Spanish strings live in
 relabel callback via :func:`on_language_changed`, so switching the language
 re-applies every callback and the running UI updates live, with no restart.
 
-The product name ``epy_paper``, code identifiers, keyboard shortcuts and
+The product name ``epy_papers``, code identifiers, keyboard shortcuts and
 journal/format names stay in English.
 """
 
@@ -74,7 +74,7 @@ _ES: dict[str, str] = {
     # --- Help menu ---
     "User Manual (English)": "Manual de usuario (Inglés)",
     "User Manual (Spanish)": "Manual de usuario (Español)",
-    "About epy_paper...": "Acerca de epy_paper...",
+    "About epy_papers...": "Acerca de epy_papers...",
     # --- Journal selector / toolbar ---
     "Journal:": "Revista:",
     "Validate": "Validar",
@@ -86,7 +86,7 @@ _ES: dict[str, str] = {
     "WARNING": "ADVERTENCIA",
     "INFO": "INFO",
     # --- Dialog labels ---
-    "About epy_paper": "Acerca de epy_paper",
+    "About epy_papers": "Acerca de epy_papers",
     "Close": "Cerrar",
     "OK": "Aceptar",
     "Cancel": "Cancelar",

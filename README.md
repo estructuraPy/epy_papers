@@ -1,4 +1,4 @@
-# epy_paper
+# epy_papers
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
@@ -10,13 +10,13 @@ The survey behind the catalog (see `REQUIREMENTS.md`) found that the published
 two-column typeset is produced by the **publisher**, not the author — so the
 author's job is the *submission manuscript*, and almost every journal's
 manuscript is the same single-column, double-spaced, line-numbered template
-with a few tunable parameters. epy_paper keeps the author's one source and
+with a few tunable parameters. epy_papers keeps the author's one source and
 applies a per-journal **profile** to produce the compliant draft.
 
 ## Public API (one entry point, like the rest of the suite)
 
 ```python
-from epy_paper import Paper, available_journals
+from epy_papers import Paper, available_journals
 
 available_journals()                      # [(id, name), ...]  — 50 journals
 paper = Paper.from_file("manuscript.md")
@@ -74,4 +74,4 @@ reusing the epy_reports shell, and PyInstaller + Inno Setup packaging.
 
 ---
 
-*epy_paper · Ing. Angel Navarro-Mora M.Sc. · ANM Ingeniería · MIT license (see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for bundled components)*
+*epy_papers · Ing. Angel Navarro-Mora M.Sc. · ANM Ingeniería · MIT license (see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for bundled components)*

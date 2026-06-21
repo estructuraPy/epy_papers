@@ -1,7 +1,7 @@
 """Build the submission reference DOCX used by the DOCX renderer.
 
 Run this once (or whenever the manuscript house style changes) to regenerate
-``src/epy_paper/assets/reference_docx/submission.docx``. Pandoc copies the
+``src/epy_papers/assets/reference_docx/submission.docx``. Pandoc copies the
 paragraph and character styles from this reference document into every DOCX
 draft, so the manuscript inherits the universal submission look:
 
@@ -35,7 +35,7 @@ BODY_SIZE = Pt(12)
 _REF_DIR = (
     Path(__file__).resolve().parent.parent
     / "src"
-    / "epy_paper"
+    / "epy_papers"
     / "assets"
     / "reference_docx"
 )

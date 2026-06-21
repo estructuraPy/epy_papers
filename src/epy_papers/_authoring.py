@@ -1,4 +1,4 @@
-"""Authoring source format for epy_paper.
+"""Authoring source format for epy_papers.
 
 The author writes the paper **once** in a single Markdown file with a YAML
 front matter and a Markdown body. The front matter models everything the
@@ -58,7 +58,7 @@ __all__ = [
     "split_front_matter",
 ]
 
-# Languages epy_paper models explicitly for bilingual venues.
+# Languages epy_papers models explicitly for bilingual venues.
 LANGS = ("en", "es")
 
 

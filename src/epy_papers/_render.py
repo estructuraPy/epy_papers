@@ -80,11 +80,11 @@ class Renderer:
         name = self.profile.get("csl", "")
         if not name:
             return None
-        return self._asset("epy_paper.assets.csl", f"{name}.csl")
+        return self._asset("epy_papers.assets.csl", f"{name}.csl")
 
     def _latex_dir(self) -> Path | None:
         """Resolve the bundled LaTeX assets dir (for the class search)."""
-        anchor = resources.files("epy_paper.assets.latex")
+        anchor = resources.files("epy_papers.assets.latex")
         with resources.as_file(anchor) as p:
             return Path(p) if Path(p).is_dir() else None
 
@@ -92,7 +92,7 @@ class Renderer:
         """Return ``(class_name, is_bundled)`` for this profile.
 
         Falls back to ``article`` when the profile names no class or names one
-        epy_paper does not bundle; the fallback is recorded in ``notes``.
+        epy_papers does not bundle; the fallback is recorded in ``notes``.
         """
         requested = str(self.profile.get("latex_class", "") or "")
         if requested in _BUNDLED_CLASSES:
@@ -170,12 +170,12 @@ class Renderer:
             if self._has_line_numbers()
             else "submission.docx"
         )
-        ref = self._asset("epy_paper.assets.reference_docx", ref_name)
+        ref = self._asset("epy_papers.assets.reference_docx", ref_name)
         if ref is None and self._has_line_numbers():
             # Fall back to the plain reference if the line-numbered variant
             # is not bundled; line numbers are then dropped for this draft.
             ref = self._asset(
-                "epy_paper.assets.reference_docx", "submission.docx"
+                "epy_papers.assets.reference_docx", "submission.docx"
             )
             self.notes.append(
                 "Line-numbered reference DOCX not bundled; "
@@ -213,7 +213,7 @@ class Renderer:
             f"--variable=fontsize:{self.profile.get('font_size_pt', 12)}pt",
         ]
         template = self._asset(
-            "epy_paper.assets.templates", "manuscript.latex"
+            "epy_papers.assets.templates", "manuscript.latex"
         )
         if template is not None:
             args.append(f"--template={template}")

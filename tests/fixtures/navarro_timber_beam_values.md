@@ -1,5 +1,5 @@
 ---
-# Replication fixture for epy_paper. Based on a real publication used purely
+# Replication fixture for epy_papers. Based on a real publication used purely
 # as a submission-format test target (no relationship to the venue):
 #   Navarro-Mora, A. (2023). "Structural and design values of timber beams."
 #   Drvna Industrija, 74. DOI 10.5552/drvind.2023.0007

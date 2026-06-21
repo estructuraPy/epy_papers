@@ -1,7 +1,7 @@
 # Reference test cases — publications of Ing. Angel Navarro-Mora, M.Sc.
 
 These are **real published articles used purely as test/reference targets** for
-epy_paper: the system must be able to reproduce each venue's submission draft so
+epy_papers: the system must be able to reproduce each venue's submission draft so
 the articles can be replicated. There is no relationship between the author and
 the formats — they are validation fixtures only.
 

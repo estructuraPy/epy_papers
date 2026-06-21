@@ -1,5 +1,5 @@
 ---
-# Replication fixture for epy_paper. Based on a real publication used purely
+# Replication fixture for epy_papers. Based on a real publication used purely
 # as a submission-format test target (no relationship to the venue):
 #   Navarro-Mora, A. (2024). "Forensic analysis of the Upala suspension
 #   bridge." IABSE Congress San Jose 2024. ISBN 9798331307189

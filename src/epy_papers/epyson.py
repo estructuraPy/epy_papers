@@ -17,9 +17,9 @@ from typing import Any
 from PySide6.QtGui import QColor, QFont, QPalette
 from PySide6.QtWidgets import QApplication
 
-from epy_paper.themes_base import Theme
+from epy_papers.themes_base import Theme
 
-ASSETS_PACKAGE = "epy_paper.assets.themes"
+ASSETS_PACKAGE = "epy_papers.assets.themes"
 
 # Files in the themes/ folder that are not themable layouts.
 _NON_LAYOUTS = {"colors.epyson", "translations.epyson"}
@@ -348,7 +348,7 @@ def user_themes_dir() -> Path:
     root = QStandardPaths.writableLocation(
         QStandardPaths.StandardLocation.AppConfigLocation
     )
-    return Path(root) / "epy_paper" / "themes"
+    return Path(root) / "epy_papers" / "themes"
 
 
 def _safe_stem(name: str) -> str:

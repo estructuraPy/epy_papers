@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import epy_paper as ep
+import epy_papers as ep
 
 
 def test_add_and_load_user_journal(tmp_path, monkeypatch):
     monkeypatch.setenv(
-        "EPY_PAPER_USER_JOURNALS", str(tmp_path / "journals.json")
+        "EPY_PAPERS_USER_JOURNALS", str(tmp_path / "journals.json")
     )
     ep.add_journal(
         "xj",
@@ -25,14 +25,14 @@ def test_add_and_load_user_journal(tmp_path, monkeypatch):
 
 
 def test_user_journal_overrides_bundled(tmp_path, monkeypatch):
-    monkeypatch.setenv("EPY_PAPER_USER_JOURNALS", str(tmp_path / "j.json"))
+    monkeypatch.setenv("EPY_PAPERS_USER_JOURNALS", str(tmp_path / "j.json"))
     bundled_id = ep.available_journals()[0][0]
     ep.add_journal(bundled_id, {"name": "OVERRIDDEN"})
     assert ep.load_journals()[bundled_id]["name"] == "OVERRIDDEN"
 
 
 def test_add_journal_requires_id(tmp_path, monkeypatch):
-    monkeypatch.setenv("EPY_PAPER_USER_JOURNALS", str(tmp_path / "j.json"))
+    monkeypatch.setenv("EPY_PAPERS_USER_JOURNALS", str(tmp_path / "j.json"))
     try:
         ep.add_journal("  ", {"name": "x"})
     except ValueError:
@@ -41,7 +41,7 @@ def test_add_journal_requires_id(tmp_path, monkeypatch):
 
 
 def test_journal_css_reflects_profile():
-    from epy_paper.tab import _journal_css
+    from epy_papers.tab import _journal_css
 
     css = _journal_css(
         {
@@ -60,7 +60,7 @@ def test_journal_css_reflects_profile():
 
 
 def test_journal_css_single_column_no_line_numbers():
-    from epy_paper.tab import _journal_css
+    from epy_papers.tab import _journal_css
 
     css = _journal_css(
         {"columns": 1, "spacing": "single", "line_numbers": "off"}
@@ -71,7 +71,7 @@ def test_journal_css_single_column_no_line_numbers():
 
 
 def test_preview_blinding_hides_authors():
-    from epy_paper.tab import _build_preview_html
+    from epy_papers.tab import _build_preview_html
 
     src = (
         "---\ntitle: T\nauthors:\n  - name: Secret Author\n"
@@ -85,7 +85,7 @@ def test_preview_blinding_hides_authors():
 
 
 def test_preview_shows_authors_when_not_blinded():
-    from epy_paper.tab import _build_preview_html
+    from epy_papers.tab import _build_preview_html
 
     src = (
         "---\ntitle: T\nauthors:\n  - name: Jane Doe\n"
@@ -96,8 +96,8 @@ def test_preview_shows_authors_when_not_blinded():
 
 
 def test_render_line_number_flag():
-    from epy_paper._authoring import Manuscript
-    from epy_paper._render import Renderer
+    from epy_papers._authoring import Manuscript
+    from epy_papers._render import Renderer
 
     src = "---\ntitle: T\nabstract: A\n---\n\nBody.\n"
     on = Renderer(Manuscript.from_source(src), {"line_numbers": "continuous"})

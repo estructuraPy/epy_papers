@@ -1,6 +1,6 @@
 # Third-Party Notices and Asset Licensing
 
-epy_paper's **source code** is licensed under the MIT License (see
+epy_papers's **source code** is licensed under the MIT License (see
 [LICENSE](LICENSE)). The distributed application bundles or links the
 following third-party components, each governed by its own license.
 
@@ -35,13 +35,13 @@ The following bundled assets are Copyright (c) 2026
 **Ing. Angel Navarro-Mora M.Sc. / ANM Ingeniería (estructuraPy)** —
 **all rights reserved**:
 
-- `src/epy_paper/assets/reference_docx/submission.docx` — the Word
+- `src/epy_papers/assets/reference_docx/submission.docx` — the Word
   submission reference (style) template.
 - `assets_build/` — source image(s) for the application icon and any
   ANM Ingeniería / estructuraPy brand images.
 
 These assets are licensed to you **only for use as an integral part of
-unmodified epy_paper distributions**. Extracting, modifying, rebranding, or
+unmodified epy_papers distributions**. Extracting, modifying, rebranding, or
 redistributing them separately — in particular for use with other
 manuscript-generation products — requires prior written permission from
 ANM Ingeniería (<ahnavarro@anmingenieria.com>).
