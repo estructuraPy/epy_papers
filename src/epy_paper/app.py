@@ -37,19 +37,18 @@ from PySide6.QtWidgets import (
 
 from epy_paper import _i18n as i18n
 
+# epy_paper bundles its own copy of the suite theme system, so the app keeps
+# the same Fluent/WinUI appearance as epy_reports / epy_slides regardless of
+# whether the sibling apps are installed alongside it.
+from epy_paper import themes as _themes
+
 APP_NAME = "epy_paper"
 
 SUPPORTED_EXTENSIONS = {".md", ".markdown"}
 
 FILE_FILTER = "Markdown paper (*.md *.markdown);;All files (*)"
 
-# Lazy theme import — epy_reports is an optional sibling.
-try:
-    from epy_reports import themes as _themes  # type: ignore[import-untyped]
-    _THEMES_AVAILABLE = True
-except ImportError:
-    _THEMES_AVAILABLE = False
-    _themes = None  # type: ignore[assignment]
+_THEMES_AVAILABLE = True
 
 
 def _load_welcome_text() -> str:
@@ -233,6 +232,9 @@ class PaperWindow(QMainWindow):
             lambda: self._on_active_tab("insert_code_block")
         )
 
+        self.act_new_journal = QAction("Add Journal...", self)
+        self.act_new_journal.triggered.connect(self._new_journal)
+
         self.act_export_docx = QAction("Export DOCX...", self)
         self.act_export_docx.setShortcut(QKeySequence("Ctrl+Shift+D"))
         self.act_export_docx.triggered.connect(self._export_docx)
@@ -327,6 +329,8 @@ class PaperWindow(QMainWindow):
         self.paper_menu.addAction(self.act_ins_equation)
         self.paper_menu.addAction(self.act_ins_citation)
         self.paper_menu.addAction(self.act_ins_code)
+        self.paper_menu.addSeparator()
+        self.paper_menu.addAction(self.act_new_journal)
 
         self.export_menu = QMenu("E&xport", self)
         self.export_menu.addAction(self.act_export_docx)
@@ -381,6 +385,12 @@ class PaperWindow(QMainWindow):
         self._journal_combo = self._build_journal_combo()
         bar.addWidget(self._journal_combo)
 
+        self._add_journal_btn = QToolButton(self)
+        self._add_journal_btn.setText("+")
+        self._add_journal_btn.setToolTip(i18n.tr("Add a new journal"))
+        self._add_journal_btn.clicked.connect(self._new_journal)
+        bar.addWidget(self._add_journal_btn)
+
         bar.addSeparator()
 
         # Validate button
@@ -430,11 +440,186 @@ class PaperWindow(QMainWindow):
         """Return the journal id currently selected in the combo."""
         return str(self._journal_combo.currentData() or "")
 
+    def _current_profile(self) -> dict | None:
+        """Return the raw profile dict for the selected journal, or None."""
+        jid = self._current_journal_id()
+        if not jid:
+            return None
+        try:
+            from epy_paper import journal_profile  # noqa: PLC0415
+
+            return journal_profile(jid)
+        except Exception:
+            return None
+
+    def _apply_journal_to_tabs(self) -> None:
+        """Push the selected journal's format to every open tab's preview."""
+        profile = self._current_profile()
+        from epy_paper.tab import PaperTab  # noqa: PLC0415
+
+        for i in range(self.tabs.count()):
+            widget = self.tabs.widget(i)
+            if isinstance(widget, PaperTab):
+                widget.set_journal(profile)
+
     def _on_journal_changed(self) -> None:
-        """Persist the journal choice and re-run validation."""
+        """Persist the journal choice, reformat previews and re-validate."""
         jid = self._current_journal_id()
         self._settings.setValue("journal_id", jid)
+        self._apply_journal_to_tabs()
         self._run_validation()
+
+    def _refresh_journal_combo(self, select_id: str | None = None) -> None:
+        """Rebuild the journal combo from the catalog, keeping a selection."""
+        from epy_paper import available_journals  # noqa: PLC0415
+
+        combo = self._journal_combo
+        keep = select_id or self._current_journal_id()
+        combo.blockSignals(True)
+        combo.clear()
+        try:
+            for jid, jname in available_journals():
+                combo.addItem(jname, jid)
+        except Exception:
+            pass
+        for i in range(combo.count()):
+            if combo.itemData(i) == keep:
+                combo.setCurrentIndex(i)
+                break
+        combo.blockSignals(False)
+        self._on_journal_changed()
+
+    def _new_journal(self) -> None:
+        """Open a dialog to add a journal profile to the user catalog."""
+        from PySide6.QtWidgets import (  # noqa: PLC0415
+            QCheckBox,
+            QComboBox,
+            QDialogButtonBox,
+            QFormLayout,
+            QHBoxLayout,
+            QLineEdit,
+            QSpinBox,
+        )
+
+        dlg = QDialog(self)
+        dlg.setWindowTitle(i18n.tr("Add Journal"))
+        dlg.setMinimumWidth(440)
+        form = QFormLayout(dlg)
+
+        ed_id = QLineEdit()
+        ed_id.setPlaceholderText("my-journal")
+        ed_name = QLineEdit()
+        ed_publisher = QLineEdit()
+        cb_columns = QComboBox()
+        cb_columns.addItems(["1", "2"])
+        cb_spacing = QComboBox()
+        cb_spacing.addItems(["single", "1.5", "double"])
+        cb_spacing.setCurrentText("double")
+        ed_font = QLineEdit("Times New Roman")
+        sp_size = QSpinBox()
+        sp_size.setRange(8, 18)
+        sp_size.setValue(12)
+        cb_page = QComboBox()
+        cb_page.addItems(["letter", "a4"])
+        chk_lineno = QCheckBox(i18n.tr("Number lines (continuous)"))
+        cb_csl = QComboBox()
+        for label, stem in (
+            ("IEEE", "ieee"),
+            ("APA", "apa"),
+            ("ASCE", "american-society-of-civil-engineers"),
+            ("Vancouver", "elsevier-vancouver"),
+            ("Elsevier (Harvard)", "elsevier-harvard"),
+            ("Springer", "springer-basic-author-date"),
+            ("Nature", "nature"),
+            ("Science", "science"),
+            ("Chicago", "chicago-author-date"),
+            ("Harvard", "harvard-cite-them-right"),
+            ("MLA", "modern-language-association"),
+            ("ACS", "american-chemical-society"),
+            ("AMA", "american-medical-association"),
+        ):
+            cb_csl.addItem(label, stem)
+        sp_abs = QSpinBox()
+        sp_abs.setRange(50, 1000)
+        sp_abs.setSingleStep(10)
+        sp_abs.setValue(250)
+        chk_docx = QCheckBox("DOCX")
+        chk_docx.setChecked(True)
+        chk_tex = QCheckBox("LaTeX")
+        chk_pdf = QCheckBox("PDF")
+        fmt_row = QHBoxLayout()
+        for box in (chk_docx, chk_tex, chk_pdf):
+            fmt_row.addWidget(box)
+        fmt_widget = QWidget()
+        fmt_widget.setLayout(fmt_row)
+
+        form.addRow(i18n.tr("Journal ID") + " *", ed_id)
+        form.addRow(i18n.tr("Name") + " *", ed_name)
+        form.addRow(i18n.tr("Publisher"), ed_publisher)
+        form.addRow(i18n.tr("Columns"), cb_columns)
+        form.addRow(i18n.tr("Line spacing"), cb_spacing)
+        form.addRow(i18n.tr("Font"), ed_font)
+        form.addRow(i18n.tr("Font size (pt)"), sp_size)
+        form.addRow(i18n.tr("Page size"), cb_page)
+        form.addRow(i18n.tr("Line numbers"), chk_lineno)
+        form.addRow(i18n.tr("Citation style"), cb_csl)
+        form.addRow(i18n.tr("Abstract max words"), sp_abs)
+        form.addRow(i18n.tr("Export formats"), fmt_widget)
+
+        buttons = QDialogButtonBox(
+            QDialogButtonBox.StandardButton.Ok
+            | QDialogButtonBox.StandardButton.Cancel
+        )
+        buttons.accepted.connect(dlg.accept)
+        buttons.rejected.connect(dlg.reject)
+        form.addRow(buttons)
+
+        if dlg.exec() != QDialog.DialogCode.Accepted:
+            return
+        jid = ed_id.text().strip()
+        name = ed_name.text().strip()
+        if not jid or not name:
+            QMessageBox.warning(
+                self, APP_NAME, i18n.tr("Journal ID and Name are required.")
+            )
+            return
+        formats = [
+            fmt
+            for box, fmt in (
+                (chk_docx, "docx"),
+                (chk_tex, "tex"),
+                (chk_pdf, "pdf"),
+            )
+            if box.isChecked()
+        ] or ["docx"]
+        profile = {
+            "name": name,
+            "publisher": ed_publisher.text().strip(),
+            "columns": int(cb_columns.currentText()),
+            "spacing": cb_spacing.currentText(),
+            "font": ed_font.text().strip() or "Times New Roman",
+            "font_size_pt": sp_size.value(),
+            "page_size": cb_page.currentText(),
+            "line_numbers": (
+                "continuous" if chk_lineno.isChecked() else "off"
+            ),
+            "csl": cb_csl.currentData(),
+            "citation": cb_csl.currentData(),
+            "abstract_words": sp_abs.value(),
+            "formats": formats,
+            "latex_class": "",
+        }
+        try:
+            from epy_paper import add_journal  # noqa: PLC0415
+
+            add_journal(jid, profile)
+        except Exception as exc:
+            QMessageBox.critical(self, APP_NAME, str(exc))
+            return
+        self._refresh_journal_combo(select_id=jid)
+        self.statusBar().showMessage(
+            i18n.tr("Journal added") + f": {name}", 4000
+        )
 
     # ------------------------------------------ validation dock
 
@@ -668,7 +853,7 @@ class PaperWindow(QMainWindow):
         from epy_paper.tab import _build_preview_html  # noqa: PLC0415
 
         try:
-            html = _build_preview_html(tab.text())
+            html = _build_preview_html(tab.text(), self._current_profile())
             target.write_text(html, encoding="utf-8")
             self.statusBar().showMessage(
                 f"Exported: {target.name}", 5000
@@ -767,6 +952,7 @@ class PaperWindow(QMainWindow):
         )
         index = self.tabs.addTab(tab, tab.title())
         self.tabs.setCurrentIndex(index)
+        tab.set_journal(self._current_profile())
         return tab
 
     def _refresh_tab_title(self, tab) -> None:

@@ -22,6 +22,7 @@ source is one Markdown file whose YAML front matter models bilingual
 from __future__ import annotations
 
 import json
+import os
 from importlib import resources
 from pathlib import Path
 from typing import Any
@@ -45,6 +46,10 @@ __all__ = [
     "available_journals",
     "journal_profile",
     "load_journals",
+    "load_user_journals",
+    "user_journals_path",
+    "add_journal",
+    "remove_user_journal",
 ]
 
 
@@ -53,15 +58,115 @@ __all__ = [
 # --------------------------------------------------------------------------
 
 
+def user_journals_path() -> Path:
+    """Return the writable catalog where user-added journals are stored.
+
+    Defaults to ``~/.epy_paper/journals.json``; override with the
+    ``EPY_PAPER_USER_JOURNALS`` environment variable. User journals persist
+    across app updates and merge on top of the bundled catalog.
+    """
+    override = os.environ.get("EPY_PAPER_USER_JOURNALS")
+    if override:
+        return Path(override)
+    return Path.home() / ".epy_paper" / "journals.json"
+
+
+def load_user_journals() -> dict[str, dict[str, Any]]:
+    """Return user-added journal profiles (empty dict if none)."""
+    path = user_journals_path()
+    if not path.is_file():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return {}
+    return {k: v for k, v in data.items() if not k.startswith("_")}
+
+
 def load_journals() -> dict[str, dict[str, Any]]:
-    """Return the full journal catalog (id -> profile dict)."""
+    """Return the full journal catalog (bundled + user), id -> profile dict.
+
+    User journals (see :func:`add_journal`) extend and override the bundled
+    catalog, so a user can add new venues or tweak an existing profile without
+    touching the shipped data.
+    """
     text = (
         resources.files("epy_paper.data")
         .joinpath("journals.json")
         .read_text(encoding="utf-8")
     )
     data = json.loads(text)
-    return {k: v for k, v in data.items() if not k.startswith("_")}
+    catalog = {k: v for k, v in data.items() if not k.startswith("_")}
+    catalog.update(load_user_journals())
+    return catalog
+
+
+def _dumps_compact(obj: Any, level: int = 0) -> str:
+    """Serialize JSON keeping leaf objects (all-scalar dicts) on one line."""
+    ind, ind1 = "  " * level, "  " * (level + 1)
+    if isinstance(obj, dict):
+        if not obj:
+            return "{}"
+        if all(not isinstance(v, (dict, list)) for v in obj.values()):
+            inner = ", ".join(
+                f"{json.dumps(k, ensure_ascii=False)}: "
+                f"{json.dumps(v, ensure_ascii=False)}"
+                for k, v in obj.items()
+            )
+            return "{" + inner + "}"
+        lines = [
+            f"{ind1}{json.dumps(k, ensure_ascii=False)}: "
+            f"{_dumps_compact(v, level + 1)}"
+            for k, v in obj.items()
+        ]
+        return "{\n" + ",\n".join(lines) + f"\n{ind}}}"
+    if isinstance(obj, list):
+        if not obj:
+            return "[]"
+        if all(not isinstance(v, (dict, list)) for v in obj):
+            return json.dumps(obj, ensure_ascii=False)
+        lines = [f"{ind1}{_dumps_compact(v, level + 1)}" for v in obj]
+        return "[\n" + ",\n".join(lines) + f"\n{ind}]"
+    return json.dumps(obj, ensure_ascii=False)
+
+
+def add_journal(journal_id: str, profile: dict[str, Any]) -> Path:
+    """Add or update a user journal profile; return the catalog path.
+
+    The profile is written to the user catalog (see
+    :func:`user_journals_path`) and immediately available from
+    :func:`load_journals` / :func:`available_journals`.
+    """
+    journal_id = str(journal_id).strip()
+    if not journal_id:
+        raise ValueError("journal_id must be a non-empty string")
+    path = user_journals_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    current: dict[str, Any] = {}
+    if path.is_file():
+        try:
+            current = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError):
+            current = {}
+    current[journal_id] = dict(profile)
+    path.write_text(_dumps_compact(current) + "\n", encoding="utf-8")
+    return path
+
+
+def remove_user_journal(journal_id: str) -> bool:
+    """Delete a user journal profile; return ``True`` if one was removed."""
+    path = user_journals_path()
+    if not path.is_file():
+        return False
+    try:
+        current = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return False
+    if journal_id not in current:
+        return False
+    del current[journal_id]
+    path.write_text(_dumps_compact(current) + "\n", encoding="utf-8")
+    return True
 
 
 def available_journals() -> list[tuple[str, str]]:

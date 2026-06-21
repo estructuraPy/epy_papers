@@ -35,90 +35,144 @@ _CAPTURE_POS_JS = (
     "})()"
 )
 
-_PREVIEW_CSS = """
-body {
-    font-family: Georgia, 'Times New Roman', serif;
-    font-size: 11pt;
-    line-height: 1.6;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 40px;
-    background: #ffffff;
-    color: #1a1a1a;
+# Structural CSS shared by every preview. The journal-specific page metrics
+# (font family, size, line spacing, columns, line numbers, page width) are
+# layered on top by _journal_css() so the preview matches the manuscript the
+# selected journal would receive.
+_BASE_CSS = """
+.page h1, .page h2, .page h3, .page h4 {
+    font-family: inherit; color: #111;
+    margin-top: 1.3em; margin-bottom: 0.4em; line-height: 1.3;
 }
-h1, h2, h3, h4 {
-    font-family: 'Palatino Linotype', Palatino, serif;
-    color: #1a1a1a;
-    margin-top: 1.4em;
-    margin-bottom: 0.4em;
-}
-h1 { font-size: 1.6em; text-align: center; margin-top: 0; }
-.byline {
-    text-align: center;
-    color: #333;
-    font-size: 0.95em;
-    margin-bottom: 1em;
-}
+.page h1 { font-size: 1.5em; text-align: center; margin-top: 0; }
+.byline { text-align: center; color: #333; margin-bottom: 1em; }
 .abstract-block {
-    border-left: 3px solid #999;
-    margin: 1.2em 0;
-    padding: 0.5em 1em;
-    background: #f8f8f8;
-    font-size: 0.93em;
+    border-left: 3px solid #999; margin: 1.2em 0;
+    padding: 0.5em 1em; background: #f8f8f8;
 }
 .abstract-block h4 {
-    font-size: 0.88em;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #555;
-    margin: 0 0 0.4em 0;
+    font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.08em;
+    color: #555; margin: 0 0 0.4em 0;
 }
-.keywords-block {
-    font-size: 0.88em;
-    color: #444;
-    margin: 0.8em 0;
+.lang-tag {
+    font-size: 0.75em; color: #888; font-style: italic;
+    text-transform: uppercase; letter-spacing: 0.05em;
 }
+.keywords-block { color: #444; margin: 0.8em 0; }
 .highlights-block {
-    background: #f0f4f8;
-    border: 1px solid #ccd;
-    border-radius: 3px;
-    padding: 0.6em 1em;
-    font-size: 0.88em;
-    margin: 0.8em 0;
+    background: #f0f4f8; border: 1px solid #ccd; border-radius: 3px;
+    padding: 0.6em 1em; margin: 0.8em 0;
 }
 .highlights-block ul { margin: 0.3em 0; padding-left: 1.4em; }
 .declarations-block {
-    font-size: 0.8em;
-    color: #666;
-    border-top: 1px solid #ddd;
-    margin-top: 1.5em;
-    padding-top: 0.8em;
+    color: #666; border-top: 1px solid #ddd;
+    margin-top: 1.5em; padding-top: 0.8em; font-size: 0.85em;
 }
 .body-section { margin-top: 2em; }
-pre, code {
-    font-family: 'Courier New', monospace;
-    font-size: 0.88em;
-    background: #f5f5f5;
-    border-radius: 2px;
-}
-pre { padding: 0.8em 1em; overflow-x: auto; }
-code { padding: 0.1em 0.3em; }
+pre, code { font-family: 'Courier New', monospace; background: #f5f5f5; }
+pre { padding: 0.8em 1em; overflow-x: auto; border-radius: 2px; }
+code { padding: 0.1em 0.3em; border-radius: 2px; }
 blockquote {
-    border-left: 3px solid #bbb;
-    margin: 1em 0;
-    padding: 0.3em 1em;
-    color: #555;
+    border-left: 3px solid #bbb; margin: 1em 0;
+    padding: 0.3em 1em; color: #555;
 }
-table {
-    border-collapse: collapse;
-    width: 100%;
-    margin: 1em 0;
-    font-size: 0.9em;
-}
+table { border-collapse: collapse; width: 100%; margin: 1em 0; }
 th, td { border: 1px solid #ccc; padding: 0.4em 0.8em; text-align: left; }
 th { background: #f0f0f0; font-weight: bold; }
 img { max-width: 100%; height: auto; }
+.fmt-bar {
+    font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px;
+    color: #44505f; background: #eef2f6; border: 1px solid #d7e0ea;
+    border-radius: 4px; padding: 7px 14px; margin: 18px auto 0 auto;
+}
+.fmt-bar b { color: #243b53; }
 """
+
+
+def _journal_css(profile: dict | None) -> str:
+    """Build page CSS from a journal profile.
+
+    Translates the profile's submission requirements (font, size, line
+    spacing, single/double column, line numbers, page size) into the CSS so
+    the live preview looks like the manuscript that journal would receive.
+    """
+    p = profile or {}
+    font_pt = p.get("font_size_pt", 12) or 12
+    spacing = str(p.get("spacing", "double")).lower()
+    line_height = {"single": "1.15", "1.5": "1.6", "double": "2.0"}.get(
+        spacing, "2.0"
+    )
+    font_name = str(p.get("font", "") or "")
+    if not font_name or "times" in font_name.lower():
+        family = "'Times New Roman', Times, serif"
+    else:
+        family = f"'{font_name}', 'Times New Roman', serif"
+    page_w = (
+        "8.5in" if str(p.get("page_size", "letter")) == "letter" else "210mm"
+    )
+    try:
+        columns = int(p.get("columns", 1) or 1)
+    except (TypeError, ValueError):
+        columns = 1
+    has_line_numbers = str(p.get("line_numbers", "off")).lower() not in (
+        "off", "", "false", "no", "none", "0"
+    )
+    col_css = "column-count: 2; column-gap: 0.4in;" if columns >= 2 else ""
+    ln_css = ""
+    if has_line_numbers:
+        ln_css = (
+            ".page .body-section { counter-reset: epyln; }"
+            ".page .body-section > p, .page .body-section > h2,"
+            ".page .body-section > h3, .page .body-section > h4,"
+            ".page .body-section > blockquote {"
+            " position: relative; }"
+            ".page .body-section > p::before,"
+            ".page .body-section > h2::before,"
+            ".page .body-section > h3::before,"
+            ".page .body-section > h4::before,"
+            ".page .body-section > blockquote::before {"
+            " counter-increment: epyln; content: counter(epyln);"
+            " position: absolute; left: -2.6em; width: 2em;"
+            " text-align: right; color: #b6b6b6;"
+            " font-family: 'Segoe UI', Arial, sans-serif;"
+            " font-size: 0.66em; line-height: inherit; user-select: none; }"
+        )
+    return (
+        "html, body { margin: 0; padding: 0; background: #e9edf1; }"
+        f"body {{ font-family: {family}; font-size: {font_pt}pt;"
+        f" line-height: {line_height}; color: #111; }}"
+        ".page {"
+        f" width: {page_w}; box-sizing: border-box; background: #fff;"
+        " margin: 14px auto 28px auto; padding: 1in 1in 1in 1.6in;"
+        " box-shadow: 0 1px 8px rgba(0,0,0,0.18); }"
+        f".page .body-section {{ {col_css} }}"
+        f".fmt-bar {{ width: {page_w}; box-sizing: border-box; }}"
+        f"{ln_css}"
+    )
+
+
+def _format_summary(profile: dict | None) -> str:
+    """Return a one-line, human-readable summary of the journal format."""
+    p = profile or {}
+    name = str(p.get("name", "")) or "no journal selected"
+    try:
+        columns = int(p.get("columns", 1) or 1)
+    except (TypeError, ValueError):
+        columns = 1
+    col = "double column" if columns >= 2 else "single column"
+    spacing = {"single": "single", "1.5": "1.5", "double": "double"}.get(
+        str(p.get("spacing", "double")).lower(), "double"
+    )
+    font_pt = p.get("font_size_pt", 12) or 12
+    page = str(p.get("page_size", "letter")).upper()
+    ln = str(p.get("line_numbers", "off")).lower() not in (
+        "off", "", "false", "no", "none", "0"
+    )
+    return (
+        f"Formatted for <b>{_html.escape(name)}</b> &middot; {col} &middot; "
+        f"{spacing} spaced &middot; {font_pt} pt &middot; {page} &middot; "
+        f"line numbers {'on' if ln else 'off'}"
+    )
 
 
 def _md_to_html_basic(text: str) -> str:
@@ -210,8 +264,17 @@ def _md_to_html_basic(text: str) -> str:
     return "\n".join(out)
 
 
-def _build_preview_html(text: str) -> str:
-    """Generate a styled HTML preview from paper Markdown source."""
+def _build_preview_html(text: str, profile: dict | None = None) -> str:
+    """Generate a journal-formatted HTML preview from paper Markdown source.
+
+    When a journal ``profile`` is supplied, the page metrics (font, line
+    spacing, columns, line numbers, page size) and submission rules (author
+    blinding) match the manuscript that journal would receive.
+    """
+    profile = profile or {}
+    blinded = str(profile.get("blinding", "")).lower() in (
+        "double", "double-blind", "double_blind"
+    )
     try:
         fm_text, body_text = split_front_matter(text)
     except Exception:
@@ -303,9 +366,14 @@ def _build_preview_html(text: str) -> str:
     if title_str:
         parts.append(f"<h1>{_html.escape(title_str)}</h1>")
 
-    if author_names:
+    if author_names and not blinded:
         byline = "; ".join(_html.escape(n) for n in author_names)
         parts.append(f'<p class="byline">{byline}</p>')
+    elif author_names and blinded:
+        parts.append(
+            '<p class="byline"><em>[author identities withheld '
+            "&mdash; double-blind submission]</em></p>"
+        )
 
     if abstract_str:
         parts.append(
@@ -347,13 +415,16 @@ def _build_preview_html(text: str) -> str:
 
     page_title = _html.escape(title_str) if title_str else "epy_paper"
     body_content = "\n".join(parts)
+    css = _journal_css(profile) + _BASE_CSS
+    fmt_bar = f'<div class="fmt-bar">{_format_summary(profile)}</div>'
 
     return (
         "<!DOCTYPE html><html><head>"
         f"<meta charset='utf-8'><title>{page_title}</title>"
-        f"<style>{_PREVIEW_CSS}</style>"
+        f"<style>{css}</style>"
         "</head><body>"
-        f"{body_content}"
+        f"{fmt_bar}"
+        f'<div class="page">{body_content}</div>'
         "</body></html>"
     )
 
@@ -379,6 +450,7 @@ class PaperTab(QWidget):
         self._render_seq = 0
         self._last_pos = ""
         self._preview_tmp_dir: Path | None = None
+        self._journal_profile: dict | None = None
 
         self.editor = QPlainTextEdit(self)
         self._setup_editor()
@@ -513,6 +585,11 @@ class PaperTab(QWidget):
         if tmp is not None:
             shutil.rmtree(tmp, ignore_errors=True)
             self._preview_tmp_dir = None
+
+    def set_journal(self, profile: dict | None) -> None:
+        """Set the active journal profile and re-render to match its format."""
+        self._journal_profile = profile
+        self._render_now(preserve=True)
 
     # ----------------------------------------------- insert helpers
 
@@ -722,7 +799,7 @@ class PaperTab(QWidget):
         """Render the buffer into the preview view."""
         text = self.editor.toPlainText()
         try:
-            html = _build_preview_html(text)
+            html = _build_preview_html(text, self._journal_profile)
         except Exception:
             html = (
                 "<html><body>"

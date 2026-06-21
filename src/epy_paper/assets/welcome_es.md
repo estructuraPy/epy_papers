@@ -329,6 +329,32 @@ todos_los_perfiles = load_journals()
 Carga y retorna el diccionario completo de revistas. Las claves que comienzan
 con `_` son eliminadas (son metadatos internos).
 
+### add_journal
+
+```python
+from epy_paper import add_journal, available_journals
+
+add_journal(
+    "mi-revista",
+    {"name": "Mi Revista", "columns": 1, "spacing": "double",
+     "line_numbers": "continuous", "font_size_pt": 12,
+     "page_size": "letter", "csl": "ieee", "formats": ["docx", "tex"]},
+)
+```
+
+Agrega o actualiza un perfil de revista en el catálogo de usuario escribible
+(`~/.epy_paper/journals.json`, o `$EPY_PAPER_USER_JOURNALS`), combinado sobre el
+catálogo incluido para que sobreviva a las actualizaciones de la app. En el
+editor, el botón **+** junto al selector de revista abre un diálogo equivalente
+y la nueva revista aparece de inmediato en el selector. `remove_user_journal(id)`
+elimina una entrada de usuario.
+
+Al seleccionar una revista, tanto la vista previa como el borrador exportado se
+reformatean según las reglas de envío de esa revista — columna simple/doble,
+interlineado, tamaño de fuente, tamaño de página y numeración de líneas
+continua — para que el borrador no solo se valide sino que quede formateado
+listo para enviar.
+
 ## API de validación
 
 ```python

@@ -325,6 +325,31 @@ all_profiles = load_journals()
 Loads and returns the full journals dictionary. Keys starting with `_` are
 stripped (they are internal metadata).
 
+### add_journal
+
+```python
+from epy_paper import add_journal, available_journals
+
+add_journal(
+    "my-journal",
+    {"name": "My Journal", "columns": 1, "spacing": "double",
+     "line_numbers": "continuous", "font_size_pt": 12,
+     "page_size": "letter", "csl": "ieee", "formats": ["docx", "tex"]},
+)
+```
+
+Adds or updates a journal profile in the writable user catalog
+(`~/.epy_paper/journals.json`, or `$EPY_PAPER_USER_JOURNALS`), merged on top of
+the bundled catalog so it survives app updates. In the desktop editor the **+**
+button beside the Journal selector opens a dialog that does the same, and the
+new journal appears in the selector immediately. `remove_user_journal(id)`
+deletes a user entry.
+
+When a journal is selected, both the live preview and the exported draft are
+reformatted to that journal's submission rules — single/double column, line
+spacing, font size, page size and continuous line numbers — so the draft is not
+just validated but formatted ready to submit.
+
 ## Validation API
 
 ```python

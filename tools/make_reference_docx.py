@@ -25,19 +25,38 @@ from pathlib import Path
 
 from docx import Document
 from docx.enum.text import WD_LINE_SPACING
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
 from docx.shared import Inches, Pt
 
 BODY_FONT = "Times New Roman"
 BODY_SIZE = Pt(12)
 
-_OUT = (
+_REF_DIR = (
     Path(__file__).resolve().parent.parent
     / "src"
     / "epy_paper"
     / "assets"
     / "reference_docx"
-    / "submission.docx"
 )
+
+
+def _add_line_numbering(section) -> None:
+    """Enable continuous line numbering on a section's properties.
+
+    Pandoc copies the reference document's section properties into the draft,
+    so journals whose profile asks for numbered lines get them in the DOCX.
+    """
+    sect_pr = section._sectPr
+    ln = OxmlElement("w:lnNumType")
+    ln.set(qn("w:countBy"), "1")
+    ln.set(qn("w:restart"), "continuous")
+    ln.set(qn("w:distance"), "360")
+    cols = sect_pr.find(qn("w:cols"))
+    if cols is not None:
+        cols.addprevious(ln)
+    else:
+        sect_pr.append(ln)
 
 
 def _set_double_spacing(paragraph_format) -> None:
@@ -45,8 +64,12 @@ def _set_double_spacing(paragraph_format) -> None:
     paragraph_format.line_spacing_rule = WD_LINE_SPACING.DOUBLE
 
 
-def build() -> Path:
-    """Build the reference DOCX and return its path."""
+def build(line_numbered: bool = False) -> Path:
+    """Build a reference DOCX and return its path.
+
+    With ``line_numbered`` the section enables continuous line numbering so
+    Pandoc-produced drafts inherit it for journals that require numbered lines.
+    """
     doc = Document()
 
     # Page geometry: US Letter, 1-inch margins.
@@ -85,11 +108,17 @@ def build() -> Path:
         style="Normal",
     )
 
-    _OUT.parent.mkdir(parents=True, exist_ok=True)
-    doc.save(str(_OUT))
-    return _OUT
+    if line_numbered:
+        _add_line_numbering(section)
+
+    out = _REF_DIR / (
+        "submission_lineno.docx" if line_numbered else "submission.docx"
+    )
+    out.parent.mkdir(parents=True, exist_ok=True)
+    doc.save(str(out))
+    return out
 
 
 if __name__ == "__main__":
-    path = build()
-    print(f"Wrote {path}")
+    for _line_numbered in (False, True):
+        print(f"Wrote {build(_line_numbered)}")

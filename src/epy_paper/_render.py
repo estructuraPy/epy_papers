@@ -135,6 +135,12 @@ class Renderer:
             or str(self.profile.get("tables", "inline")) == "end"
         )
 
+    def _has_line_numbers(self) -> bool:
+        """Whether the profile asks for numbered manuscript lines."""
+        return str(self.profile.get("line_numbers", "off")).lower() not in (
+            "off", "", "false", "no", "none", "0"
+        )
+
     def _require_pandoc(self):
         """Import pypandoc, raising :class:`PandocMissingError` if absent."""
         try:
@@ -159,9 +165,22 @@ class Renderer:
         """Render a Word submission manuscript."""
         pypandoc = self._require_pandoc()
         args = self._common_args()
-        ref = self._asset(
-            "epy_paper.assets.reference_docx", "submission.docx"
+        ref_name = (
+            "submission_lineno.docx"
+            if self._has_line_numbers()
+            else "submission.docx"
         )
+        ref = self._asset("epy_paper.assets.reference_docx", ref_name)
+        if ref is None and self._has_line_numbers():
+            # Fall back to the plain reference if the line-numbered variant
+            # is not bundled; line numbers are then dropped for this draft.
+            ref = self._asset(
+                "epy_paper.assets.reference_docx", "submission.docx"
+            )
+            self.notes.append(
+                "Line-numbered reference DOCX not bundled; "
+                "exporting without line numbers."
+            )
         if ref is not None:
             args.append(f"--reference-doc={ref}")
         else:
@@ -198,7 +217,7 @@ class Renderer:
         )
         if template is not None:
             args.append(f"--template={template}")
-        if str(self.profile.get("line_numbers", "off")) != "off":
+        if self._has_line_numbers():
             args.append("--variable=linenumbers:true")
         if self._figures_at_end():
             args.append("--variable=figsatend:true")

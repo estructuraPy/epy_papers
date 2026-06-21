@@ -53,9 +53,11 @@ hiddenimports = collect_submodules("pypandoc") + [
     "epy_paper.assets.latex",
     "epy_paper.assets.templates",
     "epy_paper.assets.reference_docx",
+    "epy_paper.assets.themes",
     "epy_paper.data",
     "PIL",
     "PIL.Image",
+    "yaml",
 ]
 
 a = Analysis(
