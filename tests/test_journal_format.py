@@ -54,7 +54,9 @@ def test_journal_css_reflects_profile():
     )
     assert "column-count: 2" in css
     assert "line-height: 2.0" in css
-    assert "counter-increment: epyln" in css
+    # Line numbering is no longer a per-paragraph CSS counter: a journal
+    # numbers typeset rows, so the preview paints a per-visual-row gutter.
+    assert "counter-increment: epyln" not in css
     assert "210mm" in css
     assert "11pt" in css
 

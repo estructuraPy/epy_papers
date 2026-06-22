@@ -134,29 +134,11 @@ def _journal_css(profile: dict | None) -> str:
         columns = int(p.get("columns", 1) or 1)
     except (TypeError, ValueError):
         columns = 1
-    has_line_numbers = str(p.get("line_numbers", "off")).lower() not in (
-        "off", "", "false", "no", "none", "0"
-    )
     col_css = "column-count: 2; column-gap: 0.4in;" if columns >= 2 else ""
-    ln_css = ""
-    if has_line_numbers:
-        ln_css = (
-            ".page .body-section { counter-reset: epyln; }"
-            ".page .body-section > p, .page .body-section > h2,"
-            ".page .body-section > h3, .page .body-section > h4,"
-            ".page .body-section > blockquote {"
-            " position: relative; }"
-            ".page .body-section > p::before,"
-            ".page .body-section > h2::before,"
-            ".page .body-section > h3::before,"
-            ".page .body-section > h4::before,"
-            ".page .body-section > blockquote::before {"
-            " counter-increment: epyln; content: counter(epyln);"
-            " position: absolute; left: -2.6em; width: 2em;"
-            " text-align: right; color: #b6b6b6;"
-            " font-family: 'Segoe UI', Arial, sans-serif;"
-            " font-size: 0.66em; line-height: inherit; user-select: none; }"
-        )
+    # Line numbering is NOT done here. A per-block CSS counter would number
+    # paragraphs, not the typeset rows a journal numbers; the preview instead
+    # paints a per-visual-row gutter (see _LINE_NUMBER_JS), which matches what
+    # the DOCX (w:lnNumType) and LaTeX (lineno) exports actually produce.
     return (
         "html, body { margin: 0; padding: 0; background: #e9edf1; }"
         f"body {{ font-family: {family}; font-size: {font_pt}pt;"
@@ -167,7 +149,6 @@ def _journal_css(profile: dict | None) -> str:
         " box-shadow: 0 1px 8px rgba(0,0,0,0.18); }"
         f".page .body-section {{ {col_css} }}"
         f".fmt-bar {{ width: {page_w}; box-sizing: border-box; }}"
-        f"{ln_css}"
     )
 
 
@@ -564,14 +545,18 @@ def _build_preview_html(text: str, profile: dict | None = None) -> str:
     body_content = "\n".join(parts)
     css = _journal_css(profile) + _BASE_CSS + _design_css()
     fmt_bar = f'<div class="fmt-bar">{_format_summary(profile)}</div>'
+    line_numbers = _wants_line_numbers(profile)
+    ln_css = _LINE_NUMBER_CSS if line_numbers else ""
+    ln_js = _LINE_NUMBER_JS if line_numbers else ""
 
     return (
         "<!DOCTYPE html><html><head>"
         f"<meta charset='utf-8'><title>{page_title}</title>"
-        f"<style>{css}</style>"
+        f"<style>{css}{ln_css}</style>"
         "</head><body>"
         f"{fmt_bar}"
         f'<div class="page">{body_content}</div>'
+        f"{ln_js}"
         "</body></html>"
     )
 

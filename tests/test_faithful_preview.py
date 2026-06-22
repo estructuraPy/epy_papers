@@ -69,3 +69,24 @@ def test_faithful_preview_no_line_numbers_when_off():
     html = _build_preview_faithful(src, {"name": "J", "line_numbers": "off"})
     assert "epy-lnum-gutter" not in html
     assert 'class="page"' in html
+
+
+def test_fast_preview_numbers_per_visual_row():
+    # The in-process (no-pandoc) preview must use the SAME per-visual-row
+    # gutter as the faithful one, not a per-paragraph counter.
+    from epy_papers.tab import _build_preview_html
+
+    html = _build_preview_html(
+        "Body paragraph one.\n\nBody paragraph two.\n",
+        {"name": "J", "line_numbers": "continuous"},
+    )
+    assert "epy-lnum-gutter" in html
+    assert "_epyNumberLines" in html
+    assert "counter-increment: epyln" not in html
+
+
+def test_fast_preview_no_gutter_when_off():
+    from epy_papers.tab import _build_preview_html
+
+    html = _build_preview_html("Body.\n", {"name": "J", "line_numbers": "off"})
+    assert "epy-lnum-gutter" not in html
