@@ -149,6 +149,7 @@ def _journal_css(profile: dict | None) -> str:
         " box-shadow: 0 1px 8px rgba(0,0,0,0.18); }"
         f".page .body-section {{ {col_css} }}"
         f".fmt-bar {{ width: {page_w}; box-sizing: border-box; }}"
+        f".epy-ln-notice {{ width: {page_w}; box-sizing: border-box; }}"
     )
 
 
@@ -344,6 +345,47 @@ _LINE_NUMBER_JS = """
 """
 
 
+_LINE_NUMBER_NOTICE_CSS = (
+    ".epy-ln-notice {"
+    " font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px;"
+    " color: #7a5b00; background: #fff7e0; border: 1px solid #f0d488;"
+    " border-radius: 4px; padding: 7px 34px 7px 12px;"
+    " margin: 10px auto 0 auto; position: relative; }"
+    ".epy-ln-notice b { color: #5a4400; }"
+    ".epy-ln-close {"
+    " position: absolute; right: 5px; top: 3px; border: none;"
+    " background: transparent; color: #9a7b1a; font-size: 16px;"
+    " line-height: 1; cursor: pointer; padding: 2px 7px; }"
+    ".epy-ln-close:hover { color: #5a4400; }"
+)
+
+# A dismissible banner warning that preview line numbers approximate the
+# final typeset document. The dismissal is remembered via localStorage so it
+# does not reappear on every debounced re-render.
+_LINE_NUMBER_NOTICE_HTML = """
+<div id="epy-ln-notice" class="epy-ln-notice">
+  <b>Preview line numbers are approximate.</b>
+  The exported DOCX / PDF carries the exact, journal-counted lines.
+  <button type="button" class="epy-ln-close" title="Dismiss"
+    onclick="window._epyDismissLn&&window._epyDismissLn()">&times;</button>
+</div>
+<script>
+(function () {
+  function rm() {
+    var n = document.getElementById('epy-ln-notice'); if (n) n.remove();
+  }
+  window._epyDismissLn = function () {
+    try { localStorage.setItem('epyLnNoticeDismissed', '1'); } catch (e) {}
+    rm();
+  };
+  try {
+    if (localStorage.getItem('epyLnNoticeDismissed') === '1') { rm(); }
+  } catch (e) {}
+})();
+</script>
+"""
+
+
 def _wants_line_numbers(profile: dict | None) -> bool:
     """Whether the profile asks for numbered manuscript lines."""
     return str((profile or {}).get("line_numbers", "off")).lower() not in (
@@ -369,9 +411,12 @@ def _build_preview_faithful(
     paper = Paper(text, base_dir)
     fragment = Renderer(paper.manuscript, profile or {}).to_html_fragment()
     css = _journal_css(profile) + _BASE_CSS + _design_css()
-    line_numbers = _wants_line_numbers(profile)
-    ln_css = _LINE_NUMBER_CSS if line_numbers else ""
-    ln_js = _LINE_NUMBER_JS if line_numbers else ""
+    if _wants_line_numbers(profile):
+        ln_css = _LINE_NUMBER_CSS + _LINE_NUMBER_NOTICE_CSS
+        ln_js = _LINE_NUMBER_JS
+        ln_notice = _LINE_NUMBER_NOTICE_HTML
+    else:
+        ln_css = ln_js = ln_notice = ""
     base_href = ""
     if base_dir is not None:
         try:
@@ -386,6 +431,7 @@ def _build_preview_faithful(
         f"{_mathjax_block()}"
         "</head><body>"
         f"{fmt_bar}"
+        f"{ln_notice}"
         f'<div class="page"><div class="body-section">{fragment}</div></div>'
         f"{ln_js}"
         "</body></html>"
@@ -545,9 +591,12 @@ def _build_preview_html(text: str, profile: dict | None = None) -> str:
     body_content = "\n".join(parts)
     css = _journal_css(profile) + _BASE_CSS + _design_css()
     fmt_bar = f'<div class="fmt-bar">{_format_summary(profile)}</div>'
-    line_numbers = _wants_line_numbers(profile)
-    ln_css = _LINE_NUMBER_CSS if line_numbers else ""
-    ln_js = _LINE_NUMBER_JS if line_numbers else ""
+    if _wants_line_numbers(profile):
+        ln_css = _LINE_NUMBER_CSS + _LINE_NUMBER_NOTICE_CSS
+        ln_js = _LINE_NUMBER_JS
+        ln_notice = _LINE_NUMBER_NOTICE_HTML
+    else:
+        ln_css = ln_js = ln_notice = ""
 
     return (
         "<!DOCTYPE html><html><head>"
@@ -555,6 +604,7 @@ def _build_preview_html(text: str, profile: dict | None = None) -> str:
         f"<style>{css}{ln_css}</style>"
         "</head><body>"
         f"{fmt_bar}"
+        f"{ln_notice}"
         f'<div class="page">{body_content}</div>'
         f"{ln_js}"
         "</body></html>"

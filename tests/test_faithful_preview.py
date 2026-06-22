@@ -90,3 +90,22 @@ def test_fast_preview_no_gutter_when_off():
 
     html = _build_preview_html("Body.\n", {"name": "J", "line_numbers": "off"})
     assert "epy-lnum-gutter" not in html
+
+
+def test_preview_shows_dismissible_approximation_notice():
+    from epy_papers.tab import _build_preview_html
+
+    html = _build_preview_html(
+        "Body.\n", {"name": "J", "line_numbers": "continuous"}
+    )
+    assert 'id="epy-ln-notice"' in html  # the banner element
+    assert "_epyDismissLn" in html  # the close handler
+    assert "approximate" in html.lower()
+
+
+def test_preview_no_notice_when_line_numbers_off():
+    from epy_papers.tab import _build_preview_html
+
+    html = _build_preview_html("Body.\n", {"name": "J", "line_numbers": "off"})
+    assert 'id="epy-ln-notice"' not in html
+    assert "_epyDismissLn" not in html
