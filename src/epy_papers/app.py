@@ -916,24 +916,99 @@ class PaperWindow(QMainWindow):
     def _do_export(
         self, tab, target: Path, fmt: str
     ) -> None:
-        """Run paper.to_draft for the given format and report result."""
+        """Run paper.to_draft for the given format and report result.
+
+        PDF is the only format that needs a LaTeX engine. When none is
+        installed the export raises :class:`LatexMissingError`; we offer to
+        download a private TinyTeX on demand (LaTeX is never bundled) and, if
+        the user accepts and it installs, retry the export once.
+        """
         from epy_papers import Paper  # noqa: PLC0415
+        from epy_papers._latex import LatexMissingError  # noqa: PLC0415
 
         text = tab.text()
         base_dir = tab.path.parent if tab.path else None
         journal_id = self._current_journal_id()
         try:
-            paper = Paper(text, base_dir)
-            paper.to_draft(journal_id, target, fmt=fmt)
-            self.statusBar().showMessage(
-                f"Exported: {target.name}", 5000
-            )
-        except Exception as exc:
+            Paper(text, base_dir).to_draft(journal_id, target, fmt=fmt)
+            self.statusBar().showMessage(f"Exported: {target.name}", 5000)
+        except LatexMissingError:
+            if not self._offer_install_latex():
+                return
+            try:
+                Paper(text, base_dir).to_draft(journal_id, target, fmt=fmt)
+                self.statusBar().showMessage(f"Exported: {target.name}", 5000)
+            except Exception as exc:  # noqa: BLE001
+                QMessageBox.critical(
+                    self, f"Export {fmt.upper()} failed", str(exc)
+                )
+        except Exception as exc:  # noqa: BLE001
             QMessageBox.critical(
-                self,
-                f"Export {fmt.upper()} failed",
-                str(exc),
+                self, f"Export {fmt.upper()} failed", str(exc)
             )
+
+    def _offer_install_latex(self) -> bool:
+        """Offer to download + install a private TinyTeX; return success.
+
+        LaTeX is optional and never bundled — PDF export downloads it on
+        demand only if the user agrees. The install runs on a worker thread
+        behind a busy progress dialog so the UI stays responsive.
+        """
+        from PySide6.QtCore import Qt, QThread, Signal  # noqa: PLC0415
+        from PySide6.QtWidgets import QProgressDialog  # noqa: PLC0415
+
+        from epy_papers._latex import DOWNLOAD_MB  # noqa: PLC0415
+
+        answer = QMessageBox.question(
+            self,
+            "Install LaTeX for PDF export",
+            "PDF export needs a LaTeX engine, which is not installed.\n\n"
+            f"epy_papers can download and install a private TinyTeX "
+            f"(~{DOWNLOAD_MB} MB) now — a one-time download reused on later "
+            "exports. Word, LaTeX and HTML export never need it.\n\n"
+            "Download and install TinyTeX now?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if answer != QMessageBox.StandardButton.Yes:
+            return False
+
+        result: dict[str, object] = {}
+
+        class _InstallWorker(QThread):
+            done = Signal()
+
+            def run(self) -> None:
+                from epy_papers._latex import (  # noqa: PLC0415
+                    install_tinytex,
+                )
+
+                try:
+                    result["engine"] = install_tinytex()
+                except Exception as exc:  # noqa: BLE001
+                    result["error"] = exc
+                self.done.emit()
+
+        dialog = QProgressDialog(
+            "Downloading and installing TinyTeX…", "", 0, 0, self
+        )
+        dialog.setWindowTitle("Installing LaTeX")
+        dialog.setCancelButton(None)
+        dialog.setWindowModality(Qt.WindowModality.WindowModal)
+        dialog.setMinimumDuration(0)
+
+        worker = _InstallWorker()
+        worker.done.connect(dialog.close)
+        worker.start()
+        dialog.exec()
+        worker.wait()
+
+        if "error" in result:
+            QMessageBox.critical(
+                self, "TinyTeX install failed", str(result["error"])
+            )
+            return False
+        return True
 
     # ------------------------------------------ About dialog
 

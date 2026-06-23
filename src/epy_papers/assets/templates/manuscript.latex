@@ -5,12 +5,29 @@
 % and the generic 'article' fallback.
 \documentclass[$if(fontsize)$$fontsize$,$endif$$if(papersize)$$papersize$,$endif$]{$documentclass$}
 
-\usepackage[$if(geometry)$$geometry$$else$letterpaper$endif$,margin=1in]{geometry}
+% The bundled journal classes (ascelike, elsarticle, IEEEtran) already load
+% geometry / setspace / lineno / endfloat with their own house options. Guard
+% each so the template only loads it for the generic 'article' fallback —
+% loading it twice triggers clashes such as "No counter 'none' defined".
+\makeatletter
+\@ifpackageloaded{geometry}{}{%
+  \usepackage[$if(geometry)$$geometry$$else$letterpaper$endif$,margin=1in]{geometry}}
+\makeatother
+% newtx-based journal classes (e.g. ascelike loads newtxmath) preload \Bbbk;
+% clear it first so amssymb can define it without an "already defined" clash.
+\let\Bbbk\relax
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{longtable}
-\usepackage{setspace}
+% Pandoc's longtable column specs use array's >{...} / \arraybackslash and
+% calc-evaluated widths; the custom template must supply them (pandoc only
+% injects its own table preamble when using its default template).
+\usepackage{array}
+\usepackage{calc}
+\makeatletter
+\@ifpackageloaded{setspace}{}{\usepackage{setspace}}
+\makeatother
 \usepackage{hyperref}
 
 $if(linestretch)$
@@ -18,19 +35,67 @@ $if(linestretch)$
 $endif$
 
 $if(linenumbers)$
-\usepackage{lineno}
+\makeatletter
+\@ifpackageloaded{lineno}{}{\usepackage{lineno}}
+\makeatother
 \linenumbers
 $endif$
 
 $if(figsatend)$
-\usepackage[nomarkers,figuresonly]{endfloat}
+\makeatletter
+\@ifpackageloaded{endfloat}{}{\usepackage[nomarkers,figuresonly]{endfloat}}
+\makeatother
 \renewcommand{\efloatseparator}{\mbox{}}
 $endif$
 
-% Pandoc compatibility shims for lists and inline code.
+% Pandoc compatibility shims for lists, inline code and table column widths.
 \providecommand{\tightlist}{%
   \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+% Pandoc writes column widths as ``(\linewidth - N\tabcolsep) * \real{0.2}``;
+% \real is a pass-through so calc can evaluate the product.
+\providecommand{\real}[1]{#1}
 \setlength{\emergencystretch}{3em}
+% Pandoc emits \def\LTcaptype{none} for an uncaptioned longtable; the caption
+% package (pulled in by journal classes such as ascelike) then steps counter
+% 'none'. Define it as a throwaway so uncaptioned tables do not abort with
+% "No counter 'none' defined".
+\makeatletter
+\@ifundefined{c@none}{\newcounter{none}}{}
+\makeatother
+% definitions for citeproc citations (verbatim from Pandoc's default template,
+% which the custom template above replaces, so the bibliography it emits has
+% the macros and CSLReferences environment it expects).
+\NewDocumentCommand\citeproctext{}{}
+\NewDocumentCommand\citeproc{mm}{%
+  \begingroup\def\citeproctext{#2}\cite{#1}\endgroup}
+\makeatletter
+ % allow citations to break across lines
+ \let\@cite@ofmt\@firstofone
+ % avoid brackets around text for \cite:
+ \def\@biblabel#1{}
+ \def\@cite#1#2{{#1\if@tempswa , #2\fi}}
+\makeatother
+\newlength{\cslhangindent}
+\setlength{\cslhangindent}{1.5em}
+\newlength{\csllabelwidth}
+\setlength{\csllabelwidth}{3em}
+\newenvironment{CSLReferences}[2] % #1 hanging-indent, #2 entry-spacing
+ {\begin{list}{}{%
+  \setlength{\itemindent}{0pt}
+  \setlength{\leftmargin}{0pt}
+  \setlength{\parsep}{0pt}%
+  % turn on hanging indent if param 1 is 1
+  \ifodd #1
+   \setlength{\leftmargin}{\cslhangindent}
+   \setlength{\itemindent}{-1\cslhangindent}%
+  \fi
+  % set entry spacing
+  \setlength{\itemsep}{#2\baselineskip}}}
+ {\end{list}}
+\newcommand{\CSLBlock}[1]{\hfill\break\parbox[t]{\linewidth}{\strut\ignorespaces#1\strut}}
+\newcommand{\CSLLeftMargin}[1]{\parbox[t]{\csllabelwidth}{\strut#1\strut}}
+\newcommand{\CSLRightInline}[1]{\parbox[t]{\linewidth - \csllabelwidth}{\strut#1\strut}}
+\newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
 
 $if(title)$
 \title{$title$}

@@ -24,6 +24,7 @@ Layout overrides driven by the profile:
 
 from __future__ import annotations
 
+import os
 from importlib import resources
 from pathlib import Path
 
@@ -114,8 +115,15 @@ class Renderer:
         base = self.ms.base_dir
         return str(base / bib if base else bib)
 
-    def _common_args(self) -> list[str]:
-        """Pandoc args shared by every output format."""
+    def _common_args(self, output_dir: Path | None = None) -> list[str]:
+        """Pandoc args shared by every output format.
+
+        ``output_dir`` is the directory of the file being written. When the
+        manuscript is unsaved (no ``base_dir``) it is used as the Pandoc
+        resource path so a relative ``bibliography:`` / image that the user
+        keeps next to the export is still found, instead of Pandoc dying with
+        "File refs.bib not found in resource path".
+        """
         args = ["--wrap=preserve"]
         csl = self._csl_path()
         bib = self._bibliography_path()
@@ -124,8 +132,9 @@ class Renderer:
             args.append(f"--bibliography={bib}")
         elif bib:
             args += ["--citeproc", f"--bibliography={bib}"]
-        if self.ms.base_dir is not None:
-            args.append(f"--resource-path={self.ms.base_dir}")
+        resource_dir = self.ms.base_dir or output_dir
+        if resource_dir is not None:
+            args.append(f"--resource-path={resource_dir}")
         return args
 
     def _figures_at_end(self) -> bool:
@@ -164,7 +173,7 @@ class Renderer:
     def to_docx(self, out: Path) -> Path:
         """Render a Word submission manuscript."""
         pypandoc = self._require_pandoc()
-        args = self._common_args()
+        args = self._common_args(output_dir=out.parent)
         ref_name = (
             "submission_lineno.docx"
             if self._has_line_numbers()
@@ -196,7 +205,7 @@ class Renderer:
         )
         return out
 
-    def _latex_args(self) -> list[str]:
+    def _latex_args(self, output_dir: Path | None = None) -> list[str]:
         """Build the metadata/variable args for LaTeX and PDF output."""
         cls, _ = self.latex_class()
         paper = (
@@ -204,7 +213,7 @@ class Renderer:
             if str(self.profile.get("page_size", "letter")) == "letter"
             else "a4paper"
         )
-        args = self._common_args() + [
+        args = self._common_args(output_dir=output_dir) + [
             "--standalone",
             f"--variable=documentclass:{cls}",
             f"--variable=geometry:{_geometry(self.profile)}",
@@ -253,7 +262,7 @@ class Renderer:
         equations as MathML so the file renders offline without scripts.
         """
         pypandoc = self._require_pandoc()
-        args = self._common_args() + [
+        args = self._common_args(output_dir=out.parent) + [
             "--standalone",
             "--embed-resources",
             "--number-sections",
@@ -276,18 +285,57 @@ class Renderer:
             to="latex",
             format="markdown",
             outputfile=str(out),
-            extra_args=self._latex_args(),
+            extra_args=self._latex_args(output_dir=out.parent),
         )
         return out
 
     def to_pdf(self, out: Path) -> Path:
-        """Render a PDF submission manuscript via LaTeX."""
-        pypandoc = self._require_pandoc()
-        pypandoc.convert_text(
-            self._doc.markdown,
-            to="pdf",
-            format="markdown",
-            outputfile=str(out),
-            extra_args=self._latex_args(),
+        """Render a PDF submission manuscript via LaTeX.
+
+        Resolves a LaTeX engine — one on ``PATH`` or a private TinyTeX the app
+        manages — and passes it to Pandoc explicitly, so the engine works even
+        when it is not on ``PATH``. Raises
+        :class:`epy_papers._latex.LatexMissingError` when none is available, so
+        the caller can offer to download one (PDF is the only format that needs
+        LaTeX; DOCX / LaTeX-source / HTML never do).
+        """
+        from epy_papers._latex import (  # noqa: PLC0415
+            LatexMissingError,
+            find_engine,
         )
+
+        pypandoc = self._require_pandoc()
+        engine = find_engine()
+        if engine is None:
+            raise LatexMissingError(
+                "PDF export needs a LaTeX engine; none was found."
+            )
+        args = self._latex_args(output_dir=out.parent) + [
+            f"--pdf-engine={engine}",
+            "--pdf-engine-opt=-interaction=nonstopmode",
+        ]
+        # The engine resolves ``\documentclass{ascelike|elsarticle|IEEEtran}``
+        # via TEXINPUTS, not Pandoc's --resource-path (which only feeds the
+        # Markdown->LaTeX pass), so point TEXINPUTS at the bundled class dir.
+        # The trailing path separator keeps the standard texmf trees in the
+        # search path (TinyTeX then auto-installs any missing CTAN packages).
+        latex_dir = self._latex_dir()
+        previous = os.environ.get("TEXINPUTS")
+        if latex_dir is not None:
+            os.environ["TEXINPUTS"] = (
+                f"{latex_dir}{os.pathsep}{previous or ''}"
+            )
+        try:
+            pypandoc.convert_text(
+                self._doc.markdown,
+                to="pdf",
+                format="markdown",
+                outputfile=str(out),
+                extra_args=args,
+            )
+        finally:
+            if previous is None:
+                os.environ.pop("TEXINPUTS", None)
+            else:
+                os.environ["TEXINPUTS"] = previous
         return out

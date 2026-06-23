@@ -306,12 +306,12 @@ _LINE_NUMBER_JS = """
     var old = page.querySelector('.epy-lnum-gutter'); if (old) old.remove();
     var g = document.createElement('div'); g.className = 'epy-lnum-gutter';
     page.appendChild(g);
-    var base = page.getBoundingClientRect(), n = 0;
+    var base = page.getBoundingClientRect(), n = 0, seen = {};
     var blocks = body.querySelectorAll(
       'p, li, h2, h3, h4, blockquote, figcaption, dd, dt');
     blocks.forEach(function (b) {
       var rng = document.createRange(); rng.selectNodeContents(b);
-      var rects = rng.getClientRects(), seen = {};
+      var rects = rng.getClientRects();
       for (var i = 0; i < rects.length; i++) {
         var r = rects[i];
         if (r.width < 2 || r.height < 2) continue;
