@@ -28,6 +28,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install .[dev] pyinstaller pypandoc-binary pillow
 
+      - name: Generate icons
+        run: python installer/make_icon.py
+
       - name: Build PyInstaller onedir
         run: python build.py
 

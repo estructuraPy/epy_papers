@@ -1,8 +1,8 @@
 # epy_papers — Minimum requirements for the paper publication system
 
 **Author / credit:** Ing. Angel Navarro-Mora M.Sc. · ANM Ingeniería
-**Status:** requirements derived from a survey of 30+ journals (see
-`docs/journal_survey.md` and `data/journals.json`).
+**Status:** requirements derived from a survey of 30+ journals, distilled into
+the bundled catalog (`src/epy_papers/data/journals.json`, 50 profiles).
 
 ## 1. The core idea (what the system does)
 

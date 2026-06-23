@@ -2,9 +2,7 @@
 
 from __future__ import annotations
 
-import json
 from importlib import resources
-from pathlib import Path
 
 import epy_papers as ep
 
@@ -59,18 +57,6 @@ def test_every_profile_has_required_fields():
     for jid, prof in catalog.items():
         for fieldname in REQUIRED_FIELDS:
             assert fieldname in prof, f"{jid} missing {fieldname}"
-
-
-def test_bundled_and_dev_catalog_are_identical():
-    """src and repo-root copies of the catalog must stay in sync."""
-    bundled = (
-        resources.files("epy_papers.data")
-        .joinpath("journals.json")
-        .read_text(encoding="utf-8")
-    )
-    repo_root = Path(__file__).resolve().parent.parent
-    dev = (repo_root / "data" / "journals.json").read_text(encoding="utf-8")
-    assert json.loads(bundled) == json.loads(dev)
 
 
 def test_asce_profiles_use_bundled_class():
