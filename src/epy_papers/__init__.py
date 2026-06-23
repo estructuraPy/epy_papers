@@ -27,7 +27,7 @@ from importlib import resources
 from pathlib import Path
 from typing import Any
 
-from ._authoring import Author, Bilingual, Manuscript
+from ._authoring import Author, Bilingual, BilingualList, Manuscript
 from ._render import PandocMissingError, Renderer
 from ._validation import Severity, ValidationResult, Warning, validate
 
@@ -39,6 +39,7 @@ __all__ = [
     "Manuscript",
     "Author",
     "Bilingual",
+    "BilingualList",
     "ValidationResult",
     "Warning",
     "Severity",
