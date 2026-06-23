@@ -245,6 +245,29 @@ class Renderer:
             extra_args=args,
         )
 
+    def to_html(self, out: Path) -> Path:
+        """Render a standalone, self-contained HTML manuscript.
+
+        Same Pandoc pipeline as the preview (journal CSL resolves the
+        references, sections numbered), wrapped as a self-contained page with
+        equations as MathML so the file renders offline without scripts.
+        """
+        pypandoc = self._require_pandoc()
+        args = self._common_args() + [
+            "--standalone",
+            "--embed-resources",
+            "--number-sections",
+            "--mathml",
+        ]
+        pypandoc.convert_text(
+            self._doc.markdown,
+            to="html5",
+            format="markdown",
+            outputfile=str(out),
+            extra_args=args,
+        )
+        return out
+
     def to_latex(self, out: Path) -> Path:
         """Render a LaTeX submission manuscript."""
         pypandoc = self._require_pandoc()

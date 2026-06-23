@@ -273,6 +273,8 @@ class Paper:
             renderer.to_latex(out)
         elif fmt == "pdf":
             renderer.to_pdf(out)
+        elif fmt == "html":
+            renderer.to_html(out)
         else:
             renderer.to_docx(out)
         return out
