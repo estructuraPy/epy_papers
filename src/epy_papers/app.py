@@ -238,23 +238,15 @@ class PaperWindow(QMainWindow):
             lambda: self._on_active_tab("insert_code_block")
         )
 
-        # Shared design blocks (cards, big stats, timelines, agendas) — the
-        # same insert options epy_reports and epy_slides expose, one engine.
-        from epy_papers._design import (  # noqa: PLC0415
-            DESIGN_BLOCK_LABELS,
-            DESIGN_BLOCKS,
+        # Shared design blocks (cards, big stats, timelines, agendas) opened
+        # through a visual picker, like the slide-layout picker in epy_slides.
+        self.act_design_block = QAction("Design block…", self)
+        self.act_design_block.triggered.connect(
+            self._open_design_block_picker
         )
 
-        self.design_actions: dict[str, QAction] = {}
-        for kind in DESIGN_BLOCKS:
-            label = DESIGN_BLOCK_LABELS.get(kind, kind.title())
-            act = QAction(label, self)
-            act.triggered.connect(
-                lambda _checked=False, k=kind: self._on_active_tab(
-                    "insert_design_block", k
-                )
-            )
-            self.design_actions[kind] = act
+        self.act_theme_gallery = QAction("Browse themes…", self)
+        self.act_theme_gallery.triggered.connect(self._open_theme_gallery)
 
         self.act_new_journal = QAction("Add Journal...", self)
         self.act_new_journal.triggered.connect(self._new_journal)
@@ -353,9 +345,7 @@ class PaperWindow(QMainWindow):
         self.paper_menu.addAction(self.act_ins_equation)
         self.paper_menu.addAction(self.act_ins_citation)
         self.paper_menu.addAction(self.act_ins_code)
-        self.design_sub = self.paper_menu.addMenu("Design block")
-        for act in self.design_actions.values():
-            self.design_sub.addAction(act)
+        self.paper_menu.addAction(self.act_design_block)
         self.paper_menu.addSeparator()
         self.paper_menu.addAction(self.act_new_journal)
 
@@ -381,13 +371,15 @@ class PaperWindow(QMainWindow):
         self.help_menu.addAction(self.act_about)
 
     def _populate_theme_menu(self) -> None:
-        """Fill the Theme submenu with radio actions."""
+        """Fill the Theme submenu with radio actions + the gallery."""
         if not hasattr(self, "theme_sub"):
             return
         self.theme_sub.clear()
         if self.theme_group is not None:
             for act in self.theme_group.actions():
                 self.theme_sub.addAction(act)
+        self.theme_sub.addSeparator()
+        self.theme_sub.addAction(self.act_theme_gallery)
 
     def _build_toolbar(self) -> None:
         """Build the main toolbar with dropdown buttons + journal selector."""
@@ -738,6 +730,37 @@ class PaperWindow(QMainWindow):
             self.theme_actions[theme.id].setChecked(True)
         if persist:
             self._settings.setValue("theme", theme.id)
+
+    def _open_theme_gallery(self) -> None:
+        """Open the theme gallery; apply the chosen theme on accept."""
+        if not _THEMES_AVAILABLE or _themes is None:
+            return
+        from epy_papers.theme_gallery_dialog import (  # noqa: PLC0415
+            ThemeGalleryDialog,
+        )
+
+        current = str(
+            self._settings.value("theme", _themes.DEFAULT_THEME_ID)
+        )
+        dialog = ThemeGalleryDialog(self, current_id=current)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        theme_id = dialog.selected_theme_id()
+        if theme_id:
+            self._apply_theme(theme_id)
+
+    def _open_design_block_picker(self) -> None:
+        """Open the design-block picker; insert the chosen block on accept."""
+        from epy_papers.design_block_dialog import (  # noqa: PLC0415
+            DesignBlockDialog,
+        )
+
+        dialog = DesignBlockDialog(self)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        kind = dialog.selected_kind()
+        if kind:
+            self._on_active_tab("insert_design_block", kind)
 
     # ------------------------------------------ i18n
 
