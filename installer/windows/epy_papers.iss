@@ -1,10 +1,10 @@
 ; Inno Setup script for epy_papers
-; Version 0.1.0
+; Version 0.1.2
 ;
 ; Build from the project root AFTER running `python build.py`:
 ;   ISCC.exe installer\windows\epy_papers.iss
 ;
-; Output: installer\dist\epy_papers-setup-0.1.0.exe
+; Output: installer\dist\epy_papers-setup-0.1.2.exe
 ;
 ; Design decisions:
 ;   - PrivilegesRequired=lowest  -> per-user install; no UAC prompt.
@@ -24,7 +24,7 @@
 ;     change to take effect in the UserChoice.
 
 #define AppName "epy_papers"
-#define AppVersion "0.1.1"
+#define AppVersion "0.1.2"
 #define AppPublisher "Ing. Angel Navarro-Mora M.Sc."
 #define AppURL "https://github.com/estructuraPy/epy_papers"
 #define AppId "{{33902761-A747-4C35-A706-2491C5932728}"
