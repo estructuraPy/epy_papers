@@ -19,9 +19,10 @@ Ing. Angel Navarro-Mora M.Sc. It uses the full authoring model:
 
 | File | Role |
 |------|------|
-| `brooklyn_bridge.md` | The single source manuscript |
+| `brooklyn_bridge.md` | The single source manuscript (English) |
+| `brooklyn_bridge_es.md` | The same manuscript in Spanish |
 | `refs.bib` | BibTeX bibliography |
-| `render_drafts.py` | Exports the draft per journal, per format |
+| `render_drafts.py` | Exports the draft per journal, per format, in both languages |
 
 ## Render the drafts
 
@@ -41,6 +42,9 @@ target journal the script writes:
 - `brooklyn_<journal>.pdf` — typeset PDF, **only when a LaTeX engine is
   available**
 
+Both languages are rendered: the English drafts are `brooklyn_<journal>.*` and
+the Spanish ones carry an `_es` suffix (`brooklyn_<journal>_es.*`).
+
 The two target journals are **ASCE Journal of Structural Engineering**
 (`asce-jse`) and **Elsevier Engineering Structures** (`eng-structures`) — both
 structural venues whose official LaTeX class epy_papers bundles, so the
@@ -57,3 +61,23 @@ PDF is the only format that needs a LaTeX engine. epy_papers does **not** bundle
 LaTeX: when you export a PDF and no engine is found, the app offers to download a
 self-contained TinyTeX (~70 MB) on demand. DOCX, LaTeX source and HTML never
 need LaTeX and always work.
+
+## Languages / Idiomas
+
+The manuscript ships in **English** (`brooklyn_bridge.md`) and **Spanish**
+(`brooklyn_bridge_es.md`), following the repo convention (`<name>.md` English,
+`<name>_es.md` Spanish). The bilingual front matter (`title` / `abstract` /
+`keywords` with `en:` + `es:`) is shared; `language:` selects which one the body
+and abstract render in. `render_drafts.py` renders both.
+
+## Disclaimer / Aviso
+
+This example is provided **for demonstration purposes only**. Its content
+(historical, technical and numerical) is illustrative and has not been reviewed
+in detail; it must not be used as a basis for engineering or any other
+decisions. Provided as is, without warranty of any kind.
+
+Este ejemplo se proporciona **únicamente con fines demostrativos**. Su contenido
+(histórico, técnico y numérico) es ilustrativo y no ha sido revisado en detalle;
+no debe usarse como base para decisiones de ingeniería ni de ningún otro tipo.
+Se entrega tal cual, sin garantía de ningún tipo.

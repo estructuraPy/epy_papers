@@ -42,6 +42,10 @@ except ImportError:
 SOURCE = ROOT / "brooklyn_bridge.md"
 OUT_DIR = ROOT / "_render"
 
+# (output suffix, source file) — the base .md is English, _es is Spanish; the
+# example ships both languages and every journal draft is rendered in each one.
+LANGS = [("", SOURCE), ("_es", ROOT / "brooklyn_bridge_es.md")]
+
 # Representative target journals (id -> human label). Both are structural-
 # engineering venues whose official LaTeX class epy_papers bundles, so the
 # LaTeX / PDF drafts use the journal's real class, not the generic fallback.
@@ -51,11 +55,13 @@ TARGETS = {
 }
 
 
-def render(journal_id: str, label: str, *, have_latex: bool) -> None:
-    """Export every format of the draft for one journal."""
-    print(f"\n=== {journal_id} — {label} ===")
-    paper = Paper.from_file(SOURCE)
-    stem = f"brooklyn_{journal_id.replace('-', '_')}"
+def render(
+    source: Path, journal_id: str, label: str, suffix: str, *, have_latex: bool
+) -> None:
+    """Export every format of the draft for one journal, one language."""
+    print(f"\n=== {journal_id}{suffix or ' (en)'} — {label} ===")
+    paper = Paper.from_file(source)
+    stem = f"brooklyn_{journal_id.replace('-', '_')}{suffix}"
     formats = ["docx", "tex", "html"]
     if have_latex:
         formats.append("pdf")
@@ -84,8 +90,11 @@ def main() -> int:
             "No LaTeX engine found — exporting DOCX / LaTeX / HTML only "
             "(install TinyTeX from the app to enable PDF)."
         )
-    for jid, label in targets.items():
-        render(jid, label, have_latex=have_latex)
+    for suffix, src in LANGS:
+        if not src.is_file():
+            continue
+        for jid, label in targets.items():
+            render(src, jid, label, suffix, have_latex=have_latex)
     print("\nAll drafts rendered.")
     return 0
 
