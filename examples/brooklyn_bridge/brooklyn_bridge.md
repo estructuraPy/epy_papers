@@ -5,7 +5,7 @@ title:
 language: en
 authors:
   - name: Angel Navarro-Mora
-    affiliation: ANM Ingeniería, San José, Costa Rica
+    affiliation: ANM Ingeniería, Cartago, Costa Rica
     email: ahnavarro@anmingenieria.com
     orcid: 0000-0002-0539-7014
     corresponding: true

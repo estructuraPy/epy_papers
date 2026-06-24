@@ -24,7 +24,7 @@
 ;     change to take effect in the UserChoice.
 
 #define AppName "epy_papers"
-#define AppVersion "0.1.5"
+#define AppVersion "0.1.6"
 #define AppPublisher "Ing. Angel Navarro-Mora M.Sc."
 #define AppURL "https://github.com/estructuraPy/epy_papers"
 #define AppId "{{33902761-A747-4C35-A706-2491C5932728}"

@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import json
 import os
+import warnings
 from importlib import resources
 from pathlib import Path
 from typing import Any
@@ -31,7 +32,7 @@ from ._authoring import Author, Bilingual, BilingualList, Manuscript
 from ._render import PandocMissingError, Renderer
 from ._validation import Severity, ValidationResult, Warning, validate
 
-__version__ = "0.1.5"
+__version__ = "0.1.6"
 
 __all__ = [
     "Paper",
@@ -73,13 +74,26 @@ def user_journals_path() -> Path:
 
 
 def load_user_journals() -> dict[str, dict[str, Any]]:
-    """Return user-added journal profiles (empty dict if none)."""
+    """Return user-added journal profiles (empty dict if none).
+
+    When the catalog file exists but cannot be read or parsed, a
+    ``UserWarning`` is emitted and an empty dict is returned so the bundled
+    journals remain usable.  Callers that need to distinguish "no user
+    journals" from "catalog corrupted" should catch the warning via
+    ``warnings.catch_warnings`` or check the file directly.
+    """
     path = user_journals_path()
     if not path.is_file():
         return {}
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError):
+    except (json.JSONDecodeError, OSError) as exc:
+        warnings.warn(
+            f"User journal catalog at {path} could not be read and will be "
+            f"ignored: {exc}",
+            UserWarning,
+            stacklevel=2,
+        )
         return {}
     return {k: v for k, v in data.items() if not k.startswith("_")}
 
@@ -147,7 +161,13 @@ def add_journal(journal_id: str, profile: dict[str, Any]) -> Path:
     if path.is_file():
         try:
             current = json.loads(path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError):
+        except (json.JSONDecodeError, OSError) as exc:
+            warnings.warn(
+                f"User journal catalog at {path} is unreadable; existing "
+                f"entries will be lost when the new journal is written: {exc}",
+                UserWarning,
+                stacklevel=2,
+            )
             current = {}
     current[journal_id] = dict(profile)
     path.write_text(_dumps_compact(current) + "\n", encoding="utf-8")
@@ -155,14 +175,17 @@ def add_journal(journal_id: str, profile: dict[str, Any]) -> Path:
 
 
 def remove_user_journal(journal_id: str) -> bool:
-    """Delete a user journal profile; return ``True`` if one was removed."""
+    """Delete a user journal profile; return ``True`` if one was removed.
+
+    Raises ``OSError`` or ``json.JSONDecodeError`` when the catalog file
+    exists but cannot be read or parsed, so callers can distinguish between
+    "journal not in catalog" (``False`` return) and "catalog is unreadable"
+    (exception).
+    """
     path = user_journals_path()
     if not path.is_file():
         return False
-    try:
-        current = json.loads(path.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError):
-        return False
+    current = json.loads(path.read_text(encoding="utf-8"))
     if journal_id not in current:
         return False
     del current[journal_id]
