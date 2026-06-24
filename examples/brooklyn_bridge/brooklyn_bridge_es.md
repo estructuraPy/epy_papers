@@ -46,6 +46,12 @@ bibliography: refs.bib
 Este manuscrito es un ejemplo ilustrativo preparado con asistencia de IA; revise su contenido antes de utilizarlo.
 :::
 
+**Sobre este ejemplo** — un ejemplo de *epy_papers*, parte de la suite de
+documentos ePy (código abierto). Fuente y ejemplos hermanos en GitHub:
+[epy_papers · Puente de Brooklyn](https://github.com/estructuraPy/epy_papers/tree/main/examples/brooklyn_bridge),
+[epy_slides · Empire State](https://github.com/estructuraPy/epy_slides/tree/main/examples/empire_state_building),
+[epy_reports · Newmark](https://github.com/estructuraPy/epy_reports/tree/main/examples/newmark).
+
 # Introducción
 
 El Puente de Brooklyn, inaugurado en 1883, es recordado como un triunfo de
