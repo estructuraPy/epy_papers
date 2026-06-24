@@ -381,6 +381,10 @@ found on the system PATH or via `pypandoc-binary`.
 The epy_papers desktop editor (`python -m epy_papers`) provides a
 multi-tab Markdown editor with a live academic preview on the right side.
 
+![The editor at a glance: the Markdown source on the left, the
+journal-formatted live preview in the centre, the Journal selector and menus
+across the top, and the validation panel on the right.](__SHOT_EDITOR__)
+
 ## Starting the Editor
 
 ```bash
@@ -416,6 +420,15 @@ that journal's requirements and citation style.
 
 The selected journal is persisted across sessions.
 
+## Themes
+
+*View ▸ Theme ▸ Browse themes…* opens a gallery of visual identities. Pick one
+to style the live preview and the HTML export; the chosen theme is remembered
+across sessions.
+
+![The theme gallery — choose a visual identity for the preview and HTML
+export.](__SHOT_THEME_GALLERY__)
+
 ## Validation Panel
 
 The validation dock on the right side lists all issues for the current
@@ -446,6 +459,13 @@ The **Paper** menu provides one-click insertion of all structured elements:
 | Insert Equation | Ctrl+Shift+Q | Display equation with label |
 | Insert Citation | Ctrl+Shift+C | Citation placeholder |
 | Insert Code Block | Ctrl+Shift+K | Fenced code block |
+
+**Design block…** opens a picker of ready-made callouts and notes — including
+the *Disclosure* presets (AI assistance, document integrity, confidentiality,
+draft) — to drop into the manuscript with one click:
+
+![The design-block picker: choose a callout or disclosure to
+insert.](__SHOT_DESIGN_BLOCK__)
 
 
 # Export Formats
@@ -514,12 +534,14 @@ Use `available_journals()` to get the full list programmatically.
 
 # Figure Example
 
-The figure below illustrates the epy_papers workflow: the author writes
-once in Markdown, selects a journal from the dropdown, and exports a
-compliant draft. The journal profile controls the template, citation
-style, and validation rules.
+The epy_papers workflow is simple: the author writes once in Markdown,
+selects a journal from the dropdown, and exports a compliant draft. The
+journal profile controls the template, citation style, and validation rules.
+A figure is inserted with a labelled image so it can be cross-referenced:
 
+```markdown
 ![Figure 1: epy_papers export workflow](figures/workflow.png){#fig-1 width=80%}
+```
 
 
 # Table Example

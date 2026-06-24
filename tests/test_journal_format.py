@@ -109,3 +109,50 @@ def test_render_line_number_flag():
     off = Renderer(Manuscript.from_source(src), {"line_numbers": "off"})
     assert on._has_line_numbers() is True
     assert off._has_line_numbers() is False
+
+
+# --- corrupt catalog tests (Finding 1/2/3 from DeepSeek audit) -------------
+
+
+def test_load_user_journals_corrupt_file_warns(tmp_path, monkeypatch):
+    """load_user_journals emits UserWarning when the catalog is corrupt."""
+    catalog_path = tmp_path / "journals.json"
+    catalog_path.write_text("NOT VALID JSON", encoding="utf-8")
+    monkeypatch.setenv("EPY_PAPERS_USER_JOURNALS", str(catalog_path))
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        result = ep.load_user_journals()
+    assert result == {}
+    user_warns = [w for w in caught if issubclass(w.category, UserWarning)]
+    assert user_warns, "expected a UserWarning for a corrupt catalog"
+    assert str(catalog_path) in str(user_warns[0].message)
+
+
+def test_add_journal_corrupt_existing_warns(tmp_path, monkeypatch):
+    """add_journal warns when the existing catalog cannot be parsed."""
+    catalog_path = tmp_path / "journals.json"
+    catalog_path.write_text("{bad json", encoding="utf-8")
+    monkeypatch.setenv("EPY_PAPERS_USER_JOURNALS", str(catalog_path))
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        ep.add_journal("new-j", {"name": "New Journal"})
+    user_warns = [w for w in caught if issubclass(w.category, UserWarning)]
+    assert user_warns, "expected a UserWarning for a corrupt existing catalog"
+    # The new journal is still written (replacing the corrupt file).
+    written = json.loads(catalog_path.read_text(encoding="utf-8"))
+    assert "new-j" in written
+
+
+def test_remove_user_journal_corrupt_raises(tmp_path, monkeypatch):
+    """remove_user_journal propagates the parse error on a corrupt catalog."""
+    catalog_path = tmp_path / "journals.json"
+    catalog_path.write_text("NOT VALID JSON", encoding="utf-8")
+    monkeypatch.setenv("EPY_PAPERS_USER_JOURNALS", str(catalog_path))
+    try:
+        ep.remove_user_journal("any-id")
+    except (json.JSONDecodeError, OSError):
+        pass  # expected — catalog is unreadable
+    else:
+        raise AssertionError(
+            "expected JSONDecodeError/OSError for a corrupt catalog"
+        )

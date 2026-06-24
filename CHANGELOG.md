@@ -4,6 +4,17 @@ All notable changes to `epy_papers` are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.7] — 2026-06-24
+
+### Added
+- **Illustrated user manual.** The in-app User Manual now walks through the
+  desktop interface with real screenshots — the editor (Markdown source +
+  journal-formatted live preview + validation panel), the theme gallery, and
+  the design-block picker — in both English and Spanish. `__SHOT_*__`
+  placeholders resolve to the bundled screenshots (mirroring the sibling apps),
+  and `tools/capture_screenshots.py` regenerates them from the real UI.
+- Tests covering the corrupt user-journal catalog warnings.
+
 ## [0.1.6] — 2026-06-24
 
 ### Changed

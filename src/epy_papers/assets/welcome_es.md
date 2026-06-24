@@ -386,6 +386,10 @@ encuentra en el PATH del sistema o a través de `pypandoc-binary`.
 El editor de escritorio de epy_papers (`python -m epy_papers`) provee un editor
 Markdown con múltiples pestañas y una vista previa académica en vivo a la derecha.
 
+![El editor de un vistazo: la fuente Markdown a la izquierda, la vista previa
+formateada según la revista en el centro, el selector de revista y los menús
+arriba, y el panel de validación a la derecha.](__SHOT_EDITOR__)
+
 ## Iniciar el editor
 
 ```bash
@@ -421,6 +425,15 @@ exportar para aplicar los requisitos y el estilo de cita de esa revista.
 
 La revista seleccionada se persiste entre sesiones.
 
+## Temas
+
+*View ▸ Theme ▸ Browse themes…* abre una galería de identidades visuales. Elija
+una para dar estilo a la vista previa y a la exportación HTML; el tema elegido se
+recuerda entre sesiones.
+
+![La galería de temas — elija una identidad visual para la vista previa y la
+exportación HTML.](__SHOT_THEME_GALLERY__)
+
 ## Panel de validación
 
 El panel de validación a la derecha lista todos los problemas del artículo
@@ -452,6 +465,13 @@ El menú **Paper** permite insertar todos los elementos estructurados con un cli
 | Insert Equation | Ctrl+Shift+Q | Ecuación de display con etiqueta |
 | Insert Citation | Ctrl+Shift+C | Marcador de cita |
 | Insert Code Block | Ctrl+Shift+K | Bloque de código delimitado |
+
+**Design block…** abre un selector de callouts y notas predefinidos — incluidos
+los *Disclosure* (asistencia de IA, integridad del documento, confidencialidad,
+borrador) — para insertarlos en el manuscrito con un clic:
+
+![El selector de bloques de diseño: elija un callout o disclosure para
+insertar.](__SHOT_DESIGN_BLOCK__)
 
 
 # Formatos de exportación
@@ -521,12 +541,15 @@ Use `available_journals()` para obtener la lista completa de forma programática
 
 # Ejemplo de figura
 
-La figura siguiente ilustra el flujo de trabajo de epy_papers: el autor escribe
-una vez en Markdown, selecciona una revista en el menú desplegable y exporta
-un borrador compatible. El perfil de la revista controla la plantilla, el estilo
-de cita y las reglas de validación.
+El flujo de trabajo de epy_papers es simple: el autor escribe una vez en
+Markdown, selecciona una revista en el menú desplegable y exporta un borrador
+compatible. El perfil de la revista controla la plantilla, el estilo de cita y
+las reglas de validación. Una figura se inserta con una imagen etiquetada para
+poder referenciarla:
 
+```markdown
 ![Figura 1: Flujo de exportación de epy_papers](figures/workflow.png){#fig-1 width=80%}
+```
 
 
 # Ejemplo de tabla

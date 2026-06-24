@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import importlib.resources
+import re
 import sys
 from pathlib import Path
 
@@ -53,19 +54,64 @@ FILE_FILTER = "Markdown paper (*.md *.markdown);;All files (*)"
 _THEMES_AVAILABLE = True
 
 
-def _load_welcome_text() -> str:
-    """Load the bundled welcome.md, returning empty string on failure."""
+def _load_manual_text(filename: str = "welcome.md") -> str:
+    """Load a bundled manual document and resolve its image placeholders.
+
+    The manual ships as Markdown under ``assets/`` so it can be edited
+    freely. ``__EPY_LOGO__`` and ``__SHOT_*__`` placeholders are replaced
+    with ``file://`` URIs to bundled images so they render even though the
+    tab has no file path. The Spanish manual (``*_es``) resolves the
+    ``*_es.png`` screenshot variants when present.
+    """
     try:
-        return (
+        text = (
             importlib.resources.files("epy_papers.assets")
-            .joinpath("welcome.md")
+            .joinpath(filename)
             .read_text(encoding="utf-8")
         )
     except Exception:
         return ""
+    assets = {
+        "__EPY_LOGO__": ("branding", "epy_papers.png"),
+        "__SHOT_EDITOR__": ("screenshots", "editor.png"),
+        "__SHOT_DESIGN_BLOCK__": ("screenshots", "dlg_design_block.png"),
+        "__SHOT_THEME_GALLERY__": ("screenshots", "dlg_theme_gallery.png"),
+    }
+    is_es = Path(filename).stem.endswith("_es")
+    root = importlib.resources.files("epy_papers.assets")
+    for placeholder, (subdir, name) in assets.items():
+        if is_es and subdir == "screenshots":
+            stem, _, ext = name.rpartition(".")
+            es_name = f"{stem}_es.{ext}"
+            try:
+                if root.joinpath(subdir).joinpath(es_name).is_file():
+                    name = es_name
+            except OSError:
+                pass
+        uri = ""
+        try:
+            res = root.joinpath(subdir).joinpath(name)
+            if res.is_file():
+                uri = Path(str(res)).resolve().as_uri()
+        except (FileNotFoundError, ValueError, OSError):
+            uri = ""
+        if uri:
+            text = text.replace(placeholder, uri)
+        else:
+            # A missing bundled image must never break an export: Pandoc
+            # aborts if an image src points at a non-existent file. Drop the
+            # whole image (with its caption/attributes) and any bare use.
+            text = re.sub(
+                r"!\[[^\]]*\]\(\s*" + re.escape(placeholder) + r"\s*\)"
+                r"(?:\{[^}]*\})?",
+                "",
+                text,
+            )
+            text = text.replace(placeholder, "")
+    return text
 
 
-WELCOME_TEXT = _load_welcome_text()
+WELCOME_TEXT = _load_manual_text("welcome.md")
 
 
 class PaperWindow(QMainWindow):
@@ -1037,13 +1083,8 @@ class PaperWindow(QMainWindow):
 
     def _open_manual(self, filename: str) -> None:
         """Open a bundled manual document in a new tab."""
-        try:
-            text = (
-                importlib.resources.files("epy_papers.assets")
-                .joinpath(filename)
-                .read_text(encoding="utf-8")
-            )
-        except Exception:
+        text = _load_manual_text(filename)
+        if not text:
             QMessageBox.warning(
                 self,
                 APP_NAME,
