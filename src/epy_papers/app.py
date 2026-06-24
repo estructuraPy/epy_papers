@@ -245,6 +245,17 @@ class PaperWindow(QMainWindow):
             self._open_design_block_picker
         )
 
+        from epy_papers._design import DISCLOSURE_PRESETS  # noqa: PLC0415
+        self.disclosure_actions: list[QAction] = []
+        for d_kind, (d_label, _d_text) in DISCLOSURE_PRESETS.items():
+            d_act = QAction(f"Disclosure: {d_label}", self)
+            d_act.triggered.connect(
+                lambda checked=False, k=d_kind: self._on_active_tab(
+                    "insert_disclosure", k
+                )
+            )
+            self.disclosure_actions.append(d_act)
+
         self.act_theme_gallery = QAction("Browse themes…", self)
         self.act_theme_gallery.triggered.connect(self._open_theme_gallery)
 
@@ -346,6 +357,9 @@ class PaperWindow(QMainWindow):
         self.paper_menu.addAction(self.act_ins_citation)
         self.paper_menu.addAction(self.act_ins_code)
         self.paper_menu.addAction(self.act_design_block)
+        self.disclosure_sub = self.paper_menu.addMenu("Disclosure")
+        for act in self.disclosure_actions:
+            self.disclosure_sub.addAction(act)
         self.paper_menu.addSeparator()
         self.paper_menu.addAction(self.act_new_journal)
 
