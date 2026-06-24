@@ -4,6 +4,14 @@ All notable changes to `epy_papers` are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] — 2026-06-23
+
+### Added
+- **Insert ▸ Disclosure.** A typed disclosure note — AI assistance, document
+  integrity, confidentiality or draft — inserted from the *Paper ▸ Disclosure*
+  submenu and styled by the theme. The Brooklyn example now carries an AI-use
+  disclosure inserted with this block.
+
 ## [0.1.4] — 2026-06-23
 
 ### Added

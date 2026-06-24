@@ -38,9 +38,13 @@ highlights:
   - El sistema híbrido anticipó las preocupaciones aeroelásticas con décadas de antelación.
 declarations:
   competing-interests: "El autor declara que no existen intereses en conflicto."
-  ai-disclosure: "El formateo y el ensamblado del borrador se realizaron con epy_papers. Este manuscrito es un ejemplo con fines demostrativos; su contenido es ilustrativo y no ha sido revisado en detalle, y no debe utilizarse como base para decisiones de ingeniería ni de ningún otro tipo."
+  ai-disclosure: "El formateo y el ensamblado del borrador se realizaron con epy_papers."
 bibliography: refs.bib
 ---
+
+::: {.disclosure}
+Este manuscrito es un ejemplo ilustrativo preparado con asistencia de IA; revise su contenido antes de utilizarlo.
+:::
 
 # Introducción
 

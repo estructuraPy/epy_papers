@@ -38,9 +38,13 @@ highlights:
   - The hybrid system anticipated aeroelastic concerns by decades.
 declarations:
   competing-interests: "The author declares no competing interests."
-  ai-disclosure: "Formatting and draft assembly performed with epy_papers. This manuscript is a demonstration example; its content is illustrative and has not been reviewed in detail, and must not be relied upon for engineering or any other decisions."
+  ai-disclosure: "Formatting and draft assembly performed with epy_papers."
 bibliography: refs.bib
 ---
+
+::: {.disclosure}
+This manuscript is an illustrative example prepared with the assistance of AI; review its content before relying on it.
+:::
 
 # Introduction
 
