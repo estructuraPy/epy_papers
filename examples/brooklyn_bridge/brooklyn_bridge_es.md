@@ -38,7 +38,7 @@ highlights:
   - El sistema híbrido anticipó las preocupaciones aeroelásticas con décadas de antelación.
 declarations:
   competing-interests: "El autor declara que no existen intereses en conflicto."
-  ai-disclosure: "El formateo y el ensamblado del borrador se realizaron con epy_papers."
+  ai-disclosure: "El ensamblado del borrador se realizó con epy_papers. Las figuras ilustrativas, salvo la fotografía original de dominio público (Figura 1), se generaron con LitoClaw, el sistema inteligente creado por ANM Ingeniería."
 bibliography: refs.bib
 ---
 
@@ -61,6 +61,8 @@ e inclinados anclados en las torres y fijados al tablero, superpuesto a las
 clásicas péndolas verticales que cuelgan de los cables principales parabólicos.
 La estructura es, por tanto, un sistema híbrido — atirantado *y* colgante a la
 vez [@mccullough1972; @billington1983].
+
+![El Puente de Brooklyn tal como se alza hoy: el abanico de tirantes rectos e inclinados es claramente visible sobre los cables principales parabólicos que cuelgan — el sistema híbrido que examina esta nota. Fotografía original de dominio público (Wikimedia Commons / Wikipedia).](original.jpeg){#fig-original width=88%}
 
 Esta dualidad no es ornamental. Es el registro físico de una filosofía de diseño
 en la que la rigidez, y no la esbeltez, constituía el criterio rector. Allí donde
@@ -91,6 +93,8 @@ sostener el tablero aunque se perdieran los cables principales [@roebling1867].
 Los tirantes eran, en sus propias palabras, una garantía de rigidez y seguridad —
 un sistema redundante cuyo propósito era resistir el viento y amortiguar el
 movimiento del tablero.
+
+![Una representación de estilo de época del cruce del East River, que evoca la década de 1880 en la que Roebling dimensionó el puente para perdurar. Ilustración generada con LitoClaw, el sistema inteligente creado por ANM Ingeniería.](bbr2.jpeg){#fig-period width=70%}
 
 Ese margen respondía a la experiencia vivida, no a una cautela abstracta. La
 generación de puentes colgantes de gran luz que precedió al cruce del East River
@@ -140,6 +144,8 @@ elemento de acero tensado es muy pequeño. La incorporación de los tirantes ele
 por tanto, la rigidez efectiva del tablero y sus frecuencias naturales, alejando
 la estructura del régimen de bajas frecuencias, sensible al viento, propio de un
 tablero puramente colgante.
+
+![Una vista de estilo grabado de una torre, donde se encuentran el cable principal parabólico, las péndolas verticales y los tirantes rectos inclinados — los tres elementos cuya interacción define el sistema híbrido. Ilustración generada con LitoClaw (ANM Ingeniería).](bbr4.jpeg){#fig-tower width=70%}
 
 Igualmente importante es lo que la segunda trayectoria de cargas aporta a la
 seguridad. Al existir dos sistemas independientes que soportan el mismo tablero,
@@ -265,3 +271,17 @@ de una. El puente perdura, en parte, gracias a un sistema de cables que la
 mayoría de las personas nunca advierte, y porque el ingeniero que lo proyectó
 eligió la rigidez sobre la esbeltez cuando ambas no podían coexistir
 [@mccullough1972; @billington1983].
+
+# El puente más allá de la ingeniería
+
+Siglo y medio después, el Puente de Brooklyn es tanto un hito cultural como uno
+estructural, reinterpretado sin fin a través de estilos visuales. Las
+ilustraciones siguientes — un atardecer luminoso, un panel pop-art y un estudio
+en acuarela — se generaron con LitoClaw, el sistema inteligente creado por ANM
+Ingeniería.
+
+![El puente a la hora dorada.](bbr1.jpeg){#fig-dusk width=70%}
+
+![Una interpretación pop-art del cruce.](bbr3.jpeg){#fig-pop width=70%}
+
+![Un estudio en acuarela de las torres y los cables.](bbr6.jpeg){#fig-watercolor width=70%}

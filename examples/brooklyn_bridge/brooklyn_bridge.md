@@ -38,7 +38,7 @@ highlights:
   - The hybrid system anticipated aeroelastic concerns by decades.
 declarations:
   competing-interests: "The author declares no competing interests."
-  ai-disclosure: "Formatting and draft assembly performed with epy_papers."
+  ai-disclosure: "Draft assembly performed with epy_papers. The illustrative figures, except the original public-domain photograph (Figure 1), were generated with LitoClaw, the intelligent system created by ANM Ingeniería."
 bibliography: refs.bib
 ---
 
@@ -60,6 +60,8 @@ system: a fan of straight, inclined stays anchored at the towers and fastened
 to the deck, superimposed on the familiar vertical suspenders that hang from
 the parabolic main cables. The structure is therefore a hybrid —
 cable-stayed *and* suspended at once [@mccullough1972; @billington1983].
+
+![The Brooklyn Bridge as it stands today: the fan of straight inclined stays is plainly visible above the draping parabolic main cables — the hybrid this note examines. Original photograph, public domain (Wikimedia Commons / Wikipedia).](original.jpeg){#fig-original width=88%}
 
 This duality is not an ornament. It is the physical record of a design
 philosophy in which stiffness, not slenderness, was the governing criterion.
@@ -87,6 +89,8 @@ stated that the inclined stays alone could hold the deck even if the main
 cables were lost [@roebling1867]. The stays were, in his words, a guarantee of
 stiffness and safety — a redundant system whose purpose was to resist the
 wind and damp the motion of the deck.
+
+![A period-style rendering of the East River crossing, evoking the 1880s in which Roebling sized the bridge for permanence. Illustration generated with LitoClaw, the intelligent system created by ANM Ingeniería.](bbr2.jpeg){#fig-period width=70%}
 
 That margin was a response to lived experience, not to abstract caution. The
 generation of long-span suspension bridges that preceded the East River
@@ -131,6 +135,8 @@ axial elongation, which for a taut steel element is very small. Adding the
 stays therefore raises the deck's effective stiffness and its natural
 frequencies, moving the structure away from the low-frequency, wind-sensitive
 regime of a pure suspension deck.
+
+![An engraving-style view of a tower, where the parabolic main cable, the vertical suspenders and the straight inclined stays all meet — the three elements whose interplay defines the hybrid. Illustration generated with LitoClaw (ANM Ingeniería).](bbr4.jpeg){#fig-tower width=70%}
 
 Equally important is what the second load path does for safety. With two
 independent systems supporting the same roadway, the loss or degradation of one
@@ -250,3 +256,16 @@ the roadway supported by two independent load paths rather than one. The bridge
 endures, in part, because of a cable system most people never notice, and
 because the engineer who drew it chose stiffness over slenderness when the two
 could not both be had [@mccullough1972; @billington1983].
+
+# The bridge beyond engineering
+
+A century and a half on, the Brooklyn Bridge is as much a cultural landmark as a
+structural one, reimagined endlessly across visual styles. The illustrations
+below — a luminous dusk, a pop-art panel and a watercolor study — were generated
+with LitoClaw, the intelligent system created by ANM Ingeniería.
+
+![The bridge at golden hour.](bbr1.jpeg){#fig-dusk width=70%}
+
+![A pop-art interpretation of the crossing.](bbr3.jpeg){#fig-pop width=70%}
+
+![A watercolor study of the towers and cables.](bbr6.jpeg){#fig-watercolor width=70%}
