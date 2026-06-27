@@ -32,7 +32,7 @@ from ._authoring import Author, Bilingual, BilingualList, Manuscript
 from ._render import PandocMissingError, Renderer
 from ._validation import Severity, ValidationResult, Warning, validate
 
-__version__ = "0.1.7"
+__version__ = "0.1.8"
 
 __all__ = [
     "Paper",

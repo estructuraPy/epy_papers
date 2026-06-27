@@ -1011,10 +1011,12 @@ class PaperTab(QWidget):
         if html is None:
             try:
                 html = _build_preview_html(text, self._journal_profile)
-            except Exception:
+            except Exception as exc:
+                msg = str(exc).replace("&", "&amp;").replace("<", "&lt;")
                 html = (
-                    "<html><body>"
-                    "<p style='color:red'>Preview error.</p>"
+                    "<!doctype html><html><head><meta charset='utf-8'></head>"
+                    "<body style='font-family:monospace;padding:1em;color:#c00'>"
+                    f"<b>Preview error</b><pre>{msg}</pre>"
                     "</body></html>"
                 )
         if self._preview_tmp_dir is None:
