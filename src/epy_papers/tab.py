@@ -1014,8 +1014,9 @@ class PaperTab(QWidget):
             except Exception as exc:
                 msg = str(exc).replace("&", "&amp;").replace("<", "&lt;")
                 html = (
-                    "<!doctype html><html><head><meta charset='utf-8'></head>"
-                    "<body style='font-family:monospace;padding:1em;color:#c00'>"
+                    "<!doctype html><html><head><meta charset='utf-8'>"
+                    "</head><body style="
+                    "'font-family:monospace;padding:1em;color:#c00'>"
                     f"<b>Preview error</b><pre>{msg}</pre>"
                     "</body></html>"
                 )

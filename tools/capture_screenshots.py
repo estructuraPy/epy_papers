@@ -14,6 +14,7 @@ variants (``editor_es.png`` …) by toggling the live UI language.
 
 from __future__ import annotations
 
+import contextlib
 import os
 import sys
 from pathlib import Path
@@ -136,10 +137,8 @@ def capture_language(app: QApplication, win: PaperWindow, suffix: str) -> None:
     """Capture the editor and dialogs for whichever language is active."""
     # Refresh the validation dock so it reflects the loaded demo paper
     # (and the active language) rather than the empty initial state.
-    try:
+    with contextlib.suppress(Exception):
         win._run_validation()
-    except Exception:
-        pass
     pump(app, 500)
     grab_widget(app, win, OUT / f"editor{suffix}.png", settle=1500)
     capture_dialogs(app, win, suffix)
