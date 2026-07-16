@@ -19,10 +19,12 @@ _HERE = Path(__file__).parent
 if str(_HERE) not in sys.path:
     sys.path.insert(0, str(_HERE))
 
-FIXTURES = _HERE / "fixtures"
-
-
 @pytest.fixture
 def fixtures_dir() -> Path:
-    """Return the test fixtures directory."""
-    return FIXTURES
+    """Return the test fixtures directory.
+
+    The replication fixtures (``navarro_*.md`` / ``.bib``) live directly in
+    ``tests/`` as siblings of ``test_replication.py``, their sole consumer
+    (no ``tests/fixtures/`` folder — forbidden non-mirror layout).
+    """
+    return _HERE
