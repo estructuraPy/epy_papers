@@ -1,12 +1,14 @@
 """Capture the epy_papers user-manual screenshots.
 
 Renders the real Fluent-styled UI (main window + the dialogs the manual
-walks through) to PNGs under ``src/epy_papers/assets/screenshots/`` so the
-bundled ``welcome.md`` / ``welcome_es.md`` manuals show the actual program.
+walks through) to PNGs under
+``src/epy_papers/_config/_assets/screenshots/`` so the bundled
+``welcome.md`` / ``welcome_es.md`` manuals show the actual program.
 
 Run it headlessly::
 
-    QT_QPA_PLATFORM=offscreen python tools/capture_screenshots.py
+    QT_QPA_PLATFORM=offscreen python \
+        src/epy_papers/_core/_packaging/tools/capture_screenshots.py
 
 It writes both the English files (``editor.png`` …) and the Spanish
 variants (``editor_es.png`` …) by toggling the live UI language.
@@ -28,8 +30,8 @@ os.environ.setdefault(
     "QTWEBENGINE_CHROMIUM_FLAGS", "--no-sandbox --disable-gpu"
 )
 
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "src"))
+REPO_ROOT = Path(__file__).resolve().parents[5]
+sys.path.insert(0, str(REPO_ROOT / "src"))
 
 from PySide6.QtCore import (  # noqa: E402
     QElapsedTimer,
@@ -45,7 +47,9 @@ from epy_papers.app import PaperWindow  # noqa: E402
 from epy_papers.design_block_dialog import DesignBlockDialog  # noqa: E402
 from epy_papers.theme_gallery_dialog import ThemeGalleryDialog  # noqa: E402
 
-OUT = ROOT / "src" / "epy_papers" / "assets" / "screenshots"
+OUT = (
+    REPO_ROOT / "src" / "epy_papers" / "_config" / "_assets" / "screenshots"
+)
 
 # A compact manuscript that exercises the front matter, a citation, an
 # equation and a table so the editor screenshot shows representative

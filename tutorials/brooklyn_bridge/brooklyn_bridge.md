@@ -48,7 +48,7 @@ This manuscript is an illustrative example prepared with the assistance of AI; r
 
 **About this example** — a worked example of *epy_papers*, part of the
 open-source ePy document suite. Source and the sibling examples on GitHub:
-[epy_papers · Brooklyn Bridge](https://github.com/estructuraPy/epy_papers/tree/main/examples/brooklyn_bridge),
+[epy_papers · Brooklyn Bridge](https://github.com/estructuraPy/epy_papers/tree/main/tutorials/brooklyn_bridge),
 [epy_slides · Empire State](https://github.com/estructuraPy/epy_slides/tree/main/examples/empire_state_building),
 [epy_reports · Newmark](https://github.com/estructuraPy/epy_reports/tree/main/examples/newmark).
 

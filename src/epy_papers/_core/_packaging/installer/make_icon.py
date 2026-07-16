@@ -1,14 +1,14 @@
 """Generate epy_papers application icons.
 
 Produces:
-  assets_build/epy_papers.ico  — multi-size ICO (16, 32, 48, 256 px)
+  ../assets_build/epy_papers.ico  — multi-size ICO (16, 32, 48, 256 px)
 
-The source image is assets_build/epy_papers.png (user-supplied logo).
+The source image is ../assets_build/epy_papers.png (user-supplied logo).
 Each ICO frame letterboxes the logo onto a square transparent canvas,
 preserving aspect ratio (centered).  epy_papers.png is NOT overwritten.
 
 Run from the project root:
-    python installer/make_icon.py
+    python src/epy_papers/_core/_packaging/installer/make_icon.py
 """
 
 from __future__ import annotations

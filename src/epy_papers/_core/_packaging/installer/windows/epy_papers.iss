@@ -2,9 +2,9 @@
 ; Version 0.1.5
 ;
 ; Build from the project root AFTER running `python build.py`:
-;   ISCC.exe installer\windows\epy_papers.iss
+;   ISCC.exe src\epy_papers\_core\_packaging\installer\windows\epy_papers.iss
 ;
-; Output: installer\dist\epy_papers-setup-0.1.5.exe
+; Output: src\epy_papers\_core\_packaging\installer\dist\epy_papers-setup-0.1.5.exe
 ;
 ; Design decisions:
 ;   - PrivilegesRequired=lowest  -> per-user install; no UAC prompt.
@@ -29,8 +29,14 @@
 #define AppURL "https://github.com/estructuraPy/epy_papers"
 #define AppId "{{33902761-A747-4C35-A706-2491C5932728}"
 #define AppExeName "epy_papers.exe"
-; Paths are relative to the location of this .iss file (installer\windows\).
-#define DistDir "..\..\dist\epy_papers"
+; Paths are relative to the location of this .iss file
+; (src\epy_papers\_core\_packaging\installer\windows\). DistDir points to
+; the PyInstaller output at the true project root (dist\ is produced by
+; build.py, which runs from the root); IconFile and OutputDir point within
+; the _packaging\ cluster (installer\ and assets_build\ are siblings there,
+; same as they were at the project root, so those two relative paths are
+; unchanged by the move).
+#define DistDir "..\..\..\..\..\..\dist\epy_papers"
 #define IconFile "..\..\assets_build\epy_papers.ico"
 #define OutputDir "..\..\installer\dist"
 

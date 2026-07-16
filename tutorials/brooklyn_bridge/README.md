@@ -28,11 +28,11 @@ Ing. Angel Navarro-Mora M.Sc. It uses the full authoring model:
 
 ```bash
 pip install -e ".[dev]"   # from the repo root, once
-cd examples/brooklyn_bridge
+cd tutorials/brooklyn_bridge
 python render_drafts.py
 ```
 
-Output lands in `examples/brooklyn_bridge/_render/` (git-ignored). For each
+Output lands in `tutorials/brooklyn_bridge/_render/` (git-ignored). For each
 target journal the script writes:
 
 - `brooklyn_<journal>.docx` — Word submission manuscript (reference-styled)

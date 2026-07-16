@@ -2,7 +2,7 @@
 
 **Author / credit:** Ing. Angel Navarro-Mora M.Sc. · ANM Ingeniería
 **Status:** requirements derived from a survey of 30+ journals, distilled into
-the bundled catalog (`src/epy_papers/data/journals.json`, 50 profiles).
+the bundled catalog (`src/epy_papers/_config/_data/journals.json`, 50 profiles).
 
 ## 1. The core idea (what the system does)
 
@@ -79,8 +79,9 @@ Citation Style Language (CSL) files for at least:
 - **Author–year** — ASCE (its own author-date), APA, Chicago author-date
   (JEE/T&F, Drvna Industrija), JMLR (natbib), Harvard, MLA, AMA, Science.
 
-The bundled CSL set lives in each app's `assets/csl/` and is shared with
-epy_reports and epy_slides (same set, same picker). The current set:
+The bundled CSL set lives in each app's `assets/csl/` (epy_papers:
+`src/epy_papers/_config/_assets/csl/`) and is shared with epy_reports and
+epy_slides (same set, same picker). The current set:
 apa, ieee, vancouver (via elsevier-vancouver), chicago-author-date,
 chicago-note-bibliography, harvard, mla, acs, ama, nature, science,
 american-society-of-civil-engineers (ASCE), elsevier-harvard, elsevier-vancouver,
@@ -88,7 +89,8 @@ springer-basic-author-date, american-political-science-association.
 
 ## 4. Journal profiles (the catalog)
 
-A **journal profile** is a small data record (see `data/journals.json`) that
+A **journal profile** is a small data record (see
+`src/epy_papers/_config/_data/journals.json`) that
 binds a journal name to the parameters above plus its limits and required
 sections. Selecting a journal applies its profile to the one source and
 produces the compliant draft. Profiles are data, not code, so adding a journal
@@ -135,8 +137,8 @@ matter (everything the submission draft needs, journal-independent) followed by
 a Markdown body. Title / abstract / keywords accept either a plain scalar
 (single language) or an ``{es, en}`` mapping (bilingual); ``language`` (default
 ``en``) names the primary variant, and the journal profile decides whether BOTH
-are emitted. See `src/epy_papers/_authoring.py` and the fixtures under
-`tests/fixtures/`.
+are emitted. See `src/epy_papers/_authoring.py` and the replication fixtures
+(`navarro_*.md`) under `tests/`.
 
 ```yaml
 ---
@@ -189,12 +191,14 @@ numbers, 12 pt serif, Letter/A4) parameterised per profile
 (`src/epy_papers/_render.py`):
 
 - **DOCX** — Pandoc + a generated reference document
-  (`assets/reference_docx/submission.docx`, built by
-  `tools/make_reference_docx.py`) carrying the body font, double spacing,
-  page geometry and heading styles.
-- **LaTeX / PDF** — Pandoc + `assets/templates/manuscript.latex` plus the
-  journal's **official class** when bundled (`assets/latex/`): `elsarticle`
-  (Elsevier), `IEEEtran` (IEEE), `ascelike` (ASCE), with their `.bst` styles.
+  (`src/epy_papers/_config/_assets/reference_docx/submission.docx`, built by
+  `src/epy_papers/_core/_packaging/tools/make_reference_docx.py`) carrying the
+  body font, double spacing, page geometry and heading styles.
+- **LaTeX / PDF** — Pandoc +
+  `src/epy_papers/_config/_assets/templates/manuscript.latex` plus the
+  journal's **official class** when bundled
+  (`src/epy_papers/_config/_assets/latex/`): `elsarticle` (Elsevier),
+  `IEEEtran` (IEEE), `ascelike` (ASCE), with their `.bst` styles.
   A journal whose class is not bundled (e.g. `svjour3`, `revtex4-2`,
   `interact`, `achemso`, `mdpi`, `jmlr2e`) falls back to the generic
   `article` template and the gap is recorded on the renderer (the build never

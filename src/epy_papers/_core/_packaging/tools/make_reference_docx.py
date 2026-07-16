@@ -1,9 +1,9 @@
 """Build the submission reference DOCX used by the DOCX renderer.
 
 Run this once (or whenever the manuscript house style changes) to regenerate
-``src/epy_papers/assets/reference_docx/submission.docx``. Pandoc copies the
-paragraph and character styles from this reference document into every DOCX
-draft, so the manuscript inherits the universal submission look:
+``src/epy_papers/_config/_assets/reference_docx/submission.docx``. Pandoc
+copies the paragraph and character styles from this reference document into
+every DOCX draft, so the manuscript inherits the universal submission look:
 
 - US Letter, 1-inch margins.
 - Times New Roman 12 pt body.
@@ -16,7 +16,7 @@ only needs ``pypandoc``.
 
 Usage::
 
-    python tools/make_reference_docx.py
+    python src/epy_papers/_core/_packaging/tools/make_reference_docx.py
 """
 
 from __future__ import annotations
@@ -33,10 +33,11 @@ BODY_FONT = "Times New Roman"
 BODY_SIZE = Pt(12)
 
 _REF_DIR = (
-    Path(__file__).resolve().parent.parent
+    Path(__file__).resolve().parents[5]
     / "src"
     / "epy_papers"
-    / "assets"
+    / "_config"
+    / "_assets"
     / "reference_docx"
 )
 

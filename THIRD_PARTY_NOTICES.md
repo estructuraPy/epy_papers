@@ -24,10 +24,10 @@ the MIT license above:
 
 | Resource | License | Source |
 |---|---|---|
-| `assets/csl/*.csl` — Citation Style Language styles | CC BY-SA 3.0 | <https://github.com/citation-style-language/styles> |
-| `assets/latex/elsarticle.cls`, `elsarticle-*.bst` (Elsevier) | LaTeX Project Public License (LPPL) | <https://ctan.org/pkg/elsarticle> |
-| `assets/latex/IEEEtran.cls` (IEEE) | LaTeX Project Public License (LPPL) | <https://ctan.org/pkg/ieeetran> |
-| `assets/latex/ascelike.cls`, `ascelike.bst` (ASCE community class) | see the package's own terms on CTAN | <https://ctan.org/pkg/ascelike> |
+| `_config/_assets/csl/*.csl` — Citation Style Language styles | CC BY-SA 3.0 | <https://github.com/citation-style-language/styles> |
+| `_config/_assets/latex/elsarticle.cls`, `elsarticle-*.bst` (Elsevier) | LaTeX Project Public License (LPPL) | <https://ctan.org/pkg/elsarticle> |
+| `_config/_assets/latex/IEEEtran.cls` (IEEE) | LaTeX Project Public License (LPPL) | <https://ctan.org/pkg/ieeetran> |
+| `_config/_assets/latex/ascelike.cls`, `ascelike.bst` (ASCE community class) | see the package's own terms on CTAN | <https://ctan.org/pkg/ascelike> |
 
 ## Proprietary assets (NOT covered by the MIT license)
 
@@ -35,10 +35,10 @@ The following bundled assets are Copyright (c) 2026
 **Ing. Angel Navarro-Mora M.Sc. / ANM Ingeniería (estructuraPy)** —
 **all rights reserved**:
 
-- `src/epy_papers/assets/reference_docx/submission.docx` — the Word
+- `src/epy_papers/_config/_assets/reference_docx/submission.docx` — the Word
   submission reference (style) template.
-- `assets_build/` — source image(s) for the application icon and any
-  ANM Ingeniería / estructuraPy brand images.
+- `src/epy_papers/_core/_packaging/assets_build/` — source image(s) for the
+  application icon and any ANM Ingeniería / estructuraPy brand images.
 
 These assets are licensed to you **only for use as an integral part of
 unmodified epy_papers distributions**. Extracting, modifying, rebranding, or
