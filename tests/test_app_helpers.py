@@ -75,7 +75,7 @@ def test_welcome_md_parseable():
     import importlib.resources
     try:
         text = (
-            importlib.resources.files("epy_papers.assets")
+            importlib.resources.files("epy_papers._config._assets")
             .joinpath("welcome.md")
             .read_text(encoding="utf-8")
         )

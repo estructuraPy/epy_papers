@@ -25,13 +25,17 @@ epy_papers = "epy_papers.app:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/epy_papers"]
-# assets/ is a sub-package (has __init__.py) so hatchling walks into it and
-# bundles every asset alongside the .py files — no force-include needed.
+# _config/_assets and _config/_data are sub-packages (each dir has
+# __init__.py) so hatchling walks into them and bundles every asset
+# alongside the .py files — no force-include needed. _core/_packaging is
+# build/release tooling only (dev scripts, installer sources); it is
+# excluded below so it never ships in the distributed wheel.
+exclude = ["src/epy_papers/_core/_packaging"]
 
 [tool.ruff]
 line-length = 79
 target-version = "py310"
-src = ["src", "tests", "tools"]
+src = ["src", "tests"]
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "N", "D", "UP", "B", "SIM"]
@@ -43,9 +47,9 @@ convention = "google"
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["D"]
 "epy_papers.spec" = ["D", "F821", "E501"]
-"tools/**/*.py" = ["D", "E501"]
-"examples/**/*.py" = ["D", "E402", "E501"]
-"installer/**/*.py" = ["D", "E402", "E501"]
+"src/epy_papers/_core/_packaging/tools/**/*.py" = ["D", "E501"]
+"tutorials/**/*.py" = ["D", "E402", "E501"]
+"src/epy_papers/_core/_packaging/installer/**/*.py" = ["D", "E402", "E501"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

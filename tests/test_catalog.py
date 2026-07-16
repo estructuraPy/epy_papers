@@ -75,7 +75,7 @@ def test_referenced_csl_files_exist():
         name = prof.get("csl")
         if not name:
             continue
-        anchor = resources.files("epy_papers.assets.csl").joinpath(
+        anchor = resources.files("epy_papers._config._assets.csl").joinpath(
             f"{name}.csl"
         )
         assert anchor.is_file(), f"{jid} references missing CSL {name}"
@@ -84,7 +84,7 @@ def test_referenced_csl_files_exist():
 def test_leaf_objects_are_inline_single_line():
     """House style: each journal profile leaf stays on one JSON line."""
     text = (
-        resources.files("epy_papers.data")
+        resources.files("epy_papers._config._data")
         .joinpath("journals.json")
         .read_text(encoding="utf-8")
     )

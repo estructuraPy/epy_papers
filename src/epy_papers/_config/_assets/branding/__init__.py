@@ -9,6 +9,6 @@ Use ``importlib.resources.files`` to read these images so they work both
 from a source install and from a frozen PyInstaller build (zip archive)::
 
     from importlib.resources import files
-    pkg = files("epy_papers.assets.branding")
+    pkg = files("epy_papers._config._assets.branding")
     data = (pkg / "epy_papers.png").read_bytes()
 """

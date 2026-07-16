@@ -57,7 +57,7 @@ _THEMES_AVAILABLE = True
 def _load_manual_text(filename: str = "welcome.md") -> str:
     """Load a bundled manual document and resolve its image placeholders.
 
-    The manual ships as Markdown under ``assets/`` so it can be edited
+    The manual ships as Markdown under ``_config/_assets/`` so it can be edited
     freely. ``__EPY_LOGO__`` and ``__SHOT_*__`` placeholders are replaced
     with ``file://`` URIs to bundled images so they render even though the
     tab has no file path. The Spanish manual (``*_es``) resolves the
@@ -65,7 +65,7 @@ def _load_manual_text(filename: str = "welcome.md") -> str:
     """
     try:
         text = (
-            importlib.resources.files("epy_papers.assets")
+            importlib.resources.files("epy_papers._config._assets")
             .joinpath(filename)
             .read_text(encoding="utf-8")
         )
@@ -78,7 +78,7 @@ def _load_manual_text(filename: str = "welcome.md") -> str:
         "__SHOT_THEME_GALLERY__": ("screenshots", "dlg_theme_gallery.png"),
     }
     is_es = Path(filename).stem.endswith("_es")
-    root = importlib.resources.files("epy_papers.assets")
+    root = importlib.resources.files("epy_papers._config._assets")
     for placeholder, (subdir, name) in assets.items():
         if is_es and subdir == "screenshots":
             stem, _, ext = name.rpartition(".")

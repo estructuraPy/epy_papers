@@ -279,7 +279,7 @@ def _mathjax_block() -> str:
     )
     try:
         js = (
-            resources.files("epy_papers.assets.mathjax")
+            resources.files("epy_papers._config._assets.mathjax")
             .joinpath("tex-svg-full.js")
             .read_text(encoding="utf-8")
         )

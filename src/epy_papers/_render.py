@@ -4,14 +4,14 @@ One universal manuscript template (single column, double spaced, continuous
 line numbers, 12 pt serif, Letter/A4) is parameterised per journal profile:
 
 - **DOCX** uses a generated reference document
-  (``assets/reference_docx/submission.docx``) for the page geometry, double
-  spacing and Times New Roman body; per-profile spacing / page size are passed
-  as Pandoc metadata that the reference doc respects.
+  (``_config/_assets/reference_docx/submission.docx``) for the page geometry,
+  double spacing and Times New Roman body; per-profile spacing / page size are
+  passed as Pandoc metadata that the reference doc respects.
 - **LaTeX / PDF** use a bundled Pandoc template
-  (``assets/templates/manuscript.latex``) plus the journal's official class
-  (``elsarticle`` / ``IEEEtran`` / ``ascelike``) when the profile names one and
-  the class file is bundled; otherwise a generic ``article`` fallback is used
-  and the gap is recorded on the renderer.
+  (``_config/_assets/templates/manuscript.latex``) plus the journal's
+  official class (``elsarticle`` / ``IEEEtran`` / ``ascelike``) when the
+  profile names one and the class file is bundled; otherwise a generic
+  ``article`` fallback is used and the gap is recorded on the renderer.
 
 Layout overrides driven by the profile:
 
@@ -81,11 +81,11 @@ class Renderer:
         name = self.profile.get("csl", "")
         if not name:
             return None
-        return self._asset("epy_papers.assets.csl", f"{name}.csl")
+        return self._asset("epy_papers._config._assets.csl", f"{name}.csl")
 
     def _latex_dir(self) -> Path | None:
         """Resolve the bundled LaTeX assets dir (for the class search)."""
-        anchor = resources.files("epy_papers.assets.latex")
+        anchor = resources.files("epy_papers._config._assets.latex")
         with resources.as_file(anchor) as p:
             return Path(p) if Path(p).is_dir() else None
 
@@ -179,12 +179,15 @@ class Renderer:
             if self._has_line_numbers()
             else "submission.docx"
         )
-        ref = self._asset("epy_papers.assets.reference_docx", ref_name)
+        ref = self._asset(
+            "epy_papers._config._assets.reference_docx", ref_name
+        )
         if ref is None and self._has_line_numbers():
             # Fall back to the plain reference if the line-numbered variant
             # is not bundled; line numbers are then dropped for this draft.
             ref = self._asset(
-                "epy_papers.assets.reference_docx", "submission.docx"
+                "epy_papers._config._assets.reference_docx",
+                "submission.docx",
             )
             self.notes.append(
                 "Line-numbered reference DOCX not bundled; "
@@ -222,7 +225,7 @@ class Renderer:
             f"--variable=fontsize:{self.profile.get('font_size_pt', 12)}pt",
         ]
         template = self._asset(
-            "epy_papers.assets.templates", "manuscript.latex"
+            "epy_papers._config._assets.templates", "manuscript.latex"
         )
         if template is not None:
             args.append(f"--template={template}")

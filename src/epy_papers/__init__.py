@@ -13,8 +13,8 @@ Single public API for the suite (mirrors ``epy_reports.Report`` /
 The published two-column typeset is produced by the publisher, never the
 author; epy_papers produces the *submission manuscript* (single column,
 double-spaced, line-numbered, the journal's citation style and page size),
-driven by a per-journal **profile** in ``data/journals.json``. The author's
-source is one Markdown file whose YAML front matter models bilingual
+driven by a per-journal **profile** in ``_config/_data/journals.json``. The
+author's source is one Markdown file whose YAML front matter models bilingual
 ``title`` / ``abstract`` / ``keywords``, ``highlights`` and ``declarations``
 (see :mod:`epy_papers._authoring` and ``REQUIREMENTS.md``).
 """
@@ -106,7 +106,7 @@ def load_journals() -> dict[str, dict[str, Any]]:
     touching the shipped data.
     """
     text = (
-        resources.files("epy_papers.data")
+        resources.files("epy_papers._config._data")
         .joinpath("journals.json")
         .read_text(encoding="utf-8")
     )
