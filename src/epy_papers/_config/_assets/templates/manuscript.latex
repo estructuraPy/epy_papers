@@ -54,6 +54,21 @@ $endif$
 % Pandoc writes column widths as ``(\linewidth - N\tabcolsep) * \real{0.2}``;
 % \real is a pass-through so calc can evaluate the product.
 \providecommand{\real}[1]{#1}
+% Pandoc >= 3.2.1 wraps every image in \pandocbounded, defined in its own
+% default template but not provided to custom templates; this is pandoc's
+% definition (scales the image down to fit \linewidth/\textheight).
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{%
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi%
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+\makeatother
 \setlength{\emergencystretch}{3em}
 % Pandoc emits \def\LTcaptype{none} for an uncaptioned longtable; the caption
 % package (pulled in by journal classes such as ascelike) then steps counter
