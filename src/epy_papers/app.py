@@ -37,13 +37,13 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from epy_papers import _i18n as i18n
+from epy_papers._core import _i18n as i18n
 
 # epy_papers bundles its own copy of the suite theme system, so the app keeps
 # the same Fluent/WinUI appearance as epy_reports / epy_slides regardless of
 # whether the sibling apps are installed alongside it.
-from epy_papers import themes as _themes
-from epy_papers.about_dialog import _load_branding_pixmap
+from epy_papers._ui import themes as _themes
+from epy_papers._ui.about_dialog import _load_branding_pixmap
 
 APP_NAME = "epy_papers"
 
@@ -130,7 +130,7 @@ class PaperWindow(QMainWindow):
         self._settings = QSettings("ANM Ingeniería", "epy_papers")
 
         # Lazy import to avoid Qt initialisation order issues.
-        from epy_papers.tab import PaperTab  # noqa: PLC0415
+        from epy_papers._ui.tab import PaperTab  # noqa: PLC0415
 
         self._PaperTab = PaperTab
 
@@ -291,7 +291,7 @@ class PaperWindow(QMainWindow):
             self._open_design_block_picker
         )
 
-        from epy_papers._design import DISCLOSURE_PRESETS  # noqa: PLC0415
+        from epy_papers._core._design import DISCLOSURE_PRESETS  # noqa: PLC0415
         self.disclosure_actions: list[QAction] = []
         for d_kind, (d_label, _d_text) in DISCLOSURE_PRESETS.items():
             d_act = QAction(f"Disclosure: {d_label}", self)
@@ -534,7 +534,7 @@ class PaperWindow(QMainWindow):
     def _apply_journal_to_tabs(self) -> None:
         """Push the selected journal's format to every open tab's preview."""
         profile = self._current_profile()
-        from epy_papers.tab import PaperTab  # noqa: PLC0415
+        from epy_papers._ui.tab import PaperTab  # noqa: PLC0415
 
         for i in range(self.tabs.count()):
             widget = self.tabs.widget(i)
@@ -795,7 +795,7 @@ class PaperWindow(QMainWindow):
         """Open the theme gallery; apply the chosen theme on accept."""
         if not _THEMES_AVAILABLE or _themes is None:
             return
-        from epy_papers.theme_gallery_dialog import (  # noqa: PLC0415
+        from epy_papers._ui.theme_gallery_dialog import (  # noqa: PLC0415
             ThemeGalleryDialog,
         )
 
@@ -811,7 +811,7 @@ class PaperWindow(QMainWindow):
 
     def _open_design_block_picker(self) -> None:
         """Open the design-block picker; insert the chosen block on accept."""
-        from epy_papers.design_block_dialog import (  # noqa: PLC0415
+        from epy_papers._ui.design_block_dialog import (  # noqa: PLC0415
             DesignBlockDialog,
         )
 
@@ -960,7 +960,7 @@ class PaperWindow(QMainWindow):
         target = Path(filename)
         if not target.suffix:
             target = target.with_suffix(".html")
-        from epy_papers.tab import _build_preview_html  # noqa: PLC0415
+        from epy_papers._ui.tab import _build_preview_html  # noqa: PLC0415
 
         try:
             html = _build_preview_html(tab.text(), self._current_profile())
@@ -984,7 +984,7 @@ class PaperWindow(QMainWindow):
         the user accepts and it installs, retry the export once.
         """
         from epy_papers import Paper  # noqa: PLC0415
-        from epy_papers._latex import LatexMissingError  # noqa: PLC0415
+        from epy_papers._core._latex import LatexMissingError  # noqa: PLC0415
 
         text = tab.text()
         base_dir = tab.path.parent if tab.path else None
@@ -1017,7 +1017,7 @@ class PaperWindow(QMainWindow):
         from PySide6.QtCore import Qt, QThread, Signal  # noqa: PLC0415
         from PySide6.QtWidgets import QProgressDialog  # noqa: PLC0415
 
-        from epy_papers._latex import DOWNLOAD_MB  # noqa: PLC0415
+        from epy_papers._core._latex import DOWNLOAD_MB  # noqa: PLC0415
 
         answer = QMessageBox.question(
             self,
@@ -1039,7 +1039,7 @@ class PaperWindow(QMainWindow):
             done = Signal()
 
             def run(self) -> None:
-                from epy_papers._latex import (  # noqa: PLC0415
+                from epy_papers._core._latex import (  # noqa: PLC0415
                     install_tinytex,
                 )
 
@@ -1074,7 +1074,7 @@ class PaperWindow(QMainWindow):
 
     def _show_about(self) -> None:
         """Open the About epy_papers dialog modally."""
-        from epy_papers.about_dialog import AboutDialog  # noqa: PLC0415
+        from epy_papers._ui.about_dialog import AboutDialog  # noqa: PLC0415
 
         dlg = AboutDialog(self)
         dlg.exec()
@@ -1140,7 +1140,7 @@ class PaperWindow(QMainWindow):
 
     def _current_tab(self):
         """Return the currently visible PaperTab, if any."""
-        from epy_papers.tab import PaperTab  # noqa: PLC0415
+        from epy_papers._ui.tab import PaperTab  # noqa: PLC0415
 
         widget = self.tabs.currentWidget()
         if isinstance(widget, PaperTab):
@@ -1182,7 +1182,7 @@ class PaperWindow(QMainWindow):
             )
             return
         path = path.resolve()
-        from epy_papers.tab import PaperTab  # noqa: PLC0415
+        from epy_papers._ui.tab import PaperTab  # noqa: PLC0415
 
         for i in range(self.tabs.count()):
             existing = self.tabs.widget(i)
@@ -1287,7 +1287,7 @@ class PaperWindow(QMainWindow):
 
     def _close_tab_at(self, index: int) -> None:
         """Handle the close button on a specific tab."""
-        from epy_papers.tab import PaperTab  # noqa: PLC0415
+        from epy_papers._ui.tab import PaperTab  # noqa: PLC0415
 
         widget = self.tabs.widget(index)
         if not isinstance(widget, PaperTab):
@@ -1308,7 +1308,7 @@ class PaperWindow(QMainWindow):
 
     def closeEvent(self, event) -> None:  # noqa: N802
         """Prompt to save every dirty tab before exiting."""
-        from epy_papers.tab import PaperTab  # noqa: PLC0415
+        from epy_papers._ui.tab import PaperTab  # noqa: PLC0415
 
         for i in range(self.tabs.count()):
             widget = self.tabs.widget(i)

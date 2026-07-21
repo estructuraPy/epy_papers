@@ -16,7 +16,7 @@ double-spaced, line-numbered, the journal's citation style and page size),
 driven by a per-journal **profile** in ``_config/_data/journals.json``. The
 author's source is one Markdown file whose YAML front matter models bilingual
 ``title`` / ``abstract`` / ``keywords``, ``highlights`` and ``declarations``
-(see :mod:`epy_papers._authoring` and ``REQUIREMENTS.md``).
+(see :mod:`epy_papers._core._authoring` and ``REQUIREMENTS.md``).
 """
 
 from __future__ import annotations
@@ -28,9 +28,9 @@ from importlib import resources
 from pathlib import Path
 from typing import Any
 
-from ._authoring import Author, Bilingual, BilingualList, Manuscript
-from ._render import PandocMissingError, Renderer
-from ._validation import Severity, ValidationResult, Warning, validate
+from ._core._authoring import Author, Bilingual, BilingualList, Manuscript
+from ._core._render import PandocMissingError, Renderer
+from ._core._validation import Severity, ValidationResult, Warning, validate
 
 __version__ = "0.1.8"
 

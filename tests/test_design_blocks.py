@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from epy_papers import themes
-from epy_papers._design import (
+from epy_papers._ui import themes
+from epy_papers._core._design import (
     DESIGN_BLOCK_LABELS,
     DESIGN_BLOCKS,
     DISCLOSURE_KINDS,
@@ -78,7 +78,7 @@ def test_disclosure_presets_render_a_disclosure_block():
 
 
 def test_preview_design_css_is_injected():
-    from epy_papers.tab import _design_css
+    from epy_papers._ui.tab import _design_css
 
     css = _design_css()
     assert ".stat" in css

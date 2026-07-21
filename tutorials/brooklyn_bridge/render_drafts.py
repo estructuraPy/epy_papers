@@ -33,11 +33,11 @@ ROOT = Path(__file__).resolve().parent
 # example runs straight from a clone without `pip install -e .`.
 try:
     from epy_papers import Paper
-    from epy_papers._latex import LatexMissingError, find_engine
+    from epy_papers._core._latex import LatexMissingError, find_engine
 except ImportError:
     sys.path.insert(0, str(ROOT.parent.parent / "src"))
     from epy_papers import Paper
-    from epy_papers._latex import LatexMissingError, find_engine
+    from epy_papers._core._latex import LatexMissingError, find_engine
 
 SOURCE = ROOT / "brooklyn_bridge.md"
 OUT_DIR = ROOT / "_render"

@@ -17,7 +17,7 @@ Public API:
 
 from __future__ import annotations
 
-from epy_papers.epyson import (
+from epy_papers._core.epyson import (
     apply_palette,
     build_epyson,
     delete_user_theme,
@@ -27,7 +27,7 @@ from epy_papers.epyson import (
     user_theme_ids,
     user_themes_dir,
 )
-from epy_papers.themes_base import Theme
+from epy_papers._ui.themes_base import Theme
 
 DEFAULT_THEME_ID = "corporate"
 

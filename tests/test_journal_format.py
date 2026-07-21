@@ -44,7 +44,7 @@ def test_add_journal_requires_id(tmp_path, monkeypatch):
 
 
 def test_journal_css_reflects_profile():
-    from epy_papers.tab import _journal_css
+    from epy_papers._ui.tab import _journal_css
 
     css = _journal_css(
         {
@@ -65,7 +65,7 @@ def test_journal_css_reflects_profile():
 
 
 def test_journal_css_single_column_no_line_numbers():
-    from epy_papers.tab import _journal_css
+    from epy_papers._ui.tab import _journal_css
 
     css = _journal_css(
         {"columns": 1, "spacing": "single", "line_numbers": "off"}
@@ -76,7 +76,7 @@ def test_journal_css_single_column_no_line_numbers():
 
 
 def test_preview_blinding_hides_authors():
-    from epy_papers.tab import _build_preview_html
+    from epy_papers._ui.tab import _build_preview_html
 
     src = (
         "---\ntitle: T\nauthors:\n  - name: Secret Author\n"
@@ -90,7 +90,7 @@ def test_preview_blinding_hides_authors():
 
 
 def test_preview_shows_authors_when_not_blinded():
-    from epy_papers.tab import _build_preview_html
+    from epy_papers._ui.tab import _build_preview_html
 
     src = (
         "---\ntitle: T\nauthors:\n  - name: Jane Doe\n"
@@ -101,8 +101,8 @@ def test_preview_shows_authors_when_not_blinded():
 
 
 def test_render_line_number_flag():
-    from epy_papers._authoring import Manuscript
-    from epy_papers._render import Renderer
+    from epy_papers._core._authoring import Manuscript
+    from epy_papers._core._render import Renderer
 
     src = "---\ntitle: T\nabstract: A\n---\n\nBody.\n"
     on = Renderer(Manuscript.from_source(src), {"line_numbers": "continuous"})

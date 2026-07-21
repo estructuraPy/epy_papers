@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import epy_papers as ep
 from _pandoc import needs_pandoc
-from epy_papers._render import Renderer
+from epy_papers._core._render import Renderer
 
 SIMPLE = (
     "---\ntitle: {en: A test manuscript}\n"

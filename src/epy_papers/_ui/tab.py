@@ -20,7 +20,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from epy_papers._authoring import split_front_matter
+from epy_papers._core._authoring import split_front_matter
 
 RENDER_DEBOUNCE_MS = 250
 POS_POLL_MS = 400
@@ -101,8 +101,8 @@ def _design_css() -> str:
     unavailable, so the preview degrades gracefully.
     """
     try:
-        from epy_papers import themes as _t  # noqa: PLC0415
-        from epy_papers._design import design_css  # noqa: PLC0415
+        from epy_papers._ui import themes as _t  # noqa: PLC0415
+        from epy_papers._core._design import design_css  # noqa: PLC0415
 
         return design_css(_t.get(_t.DEFAULT_THEME_ID), scope="")
     except Exception:
@@ -406,7 +406,7 @@ def _build_preview_faithful(
     to the fast preview.
     """
     from epy_papers import Paper  # noqa: PLC0415
-    from epy_papers._render import Renderer  # noqa: PLC0415
+    from epy_papers._core._render import Renderer  # noqa: PLC0415
 
     paper = Paper(text, base_dir)
     fragment = Renderer(paper.manuscript, profile or {}).to_html_fragment()
@@ -831,14 +831,14 @@ class PaperTab(QWidget):
 
     def insert_design_block(self, kind: str = "stat") -> None:
         """Insert a shared design block (card, big stat, timeline, ...)."""
-        from epy_papers._design import design_block  # noqa: PLC0415
+        from epy_papers._core._design import design_block  # noqa: PLC0415
 
         skeleton, token = design_block(kind)
         self._insert_template(skeleton, token)
 
     def insert_disclosure(self, kind: str = "ai") -> None:
         """Insert a disclosure note (AI use, document integrity, ...)."""
-        from epy_papers._design import disclosure_block  # noqa: PLC0415
+        from epy_papers._core._design import disclosure_block  # noqa: PLC0415
 
         skeleton, token = disclosure_block(kind)
         self._insert_template(skeleton, token)

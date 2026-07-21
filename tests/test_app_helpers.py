@@ -15,7 +15,7 @@ def test_available_journals_nonempty():
 
 
 def test_split_front_matter_round_trip():
-    from epy_papers._authoring import split_front_matter
+    from epy_papers._core._authoring import split_front_matter
     source = "---\ntitle: Test\n---\n\n# Body\n"
     fm, body = split_front_matter(source)
     assert "title" in fm
@@ -23,7 +23,7 @@ def test_split_front_matter_round_trip():
 
 
 def test_split_front_matter_no_fm():
-    from epy_papers._authoring import split_front_matter
+    from epy_papers._core._authoring import split_front_matter
     source = "# Just a body\n"
     fm, body = split_front_matter(source)
     assert fm == ""

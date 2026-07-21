@@ -298,11 +298,11 @@ class Renderer:
         Resolves a LaTeX engine — one on ``PATH`` or a private TinyTeX the app
         manages — and passes it to Pandoc explicitly, so the engine works even
         when it is not on ``PATH``. Raises
-        :class:`epy_papers._latex.LatexMissingError` when none is available, so
+        :class:`epy_papers._core._latex.LatexMissingError` when none is available, so
         the caller can offer to download one (PDF is the only format that needs
         LaTeX; DOCX / LaTeX-source / HTML never do).
         """
-        from epy_papers._latex import (  # noqa: PLC0415
+        from epy_papers._core._latex import (  # noqa: PLC0415
             LatexMissingError,
             find_engine,
         )

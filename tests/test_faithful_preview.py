@@ -16,7 +16,7 @@ def _pandoc_available() -> bool:
 
 
 def test_mathjax_block_bundled():
-    from epy_papers.tab import _mathjax_block
+    from epy_papers._ui.tab import _mathjax_block
 
     block = _mathjax_block()
     assert "window.MathJax" in block
@@ -27,8 +27,8 @@ def test_mathjax_block_bundled():
 def test_to_html_fragment_renders_body():
     if not _pandoc_available():
         pytest.skip("pandoc not available")
-    from epy_papers._authoring import Manuscript
-    from epy_papers._render import Renderer
+    from epy_papers._core._authoring import Manuscript
+    from epy_papers._core._render import Renderer
 
     src = (
         "---\ntitle: Faithful Test\nabstract: An abstract.\n---\n\n"
@@ -45,7 +45,7 @@ def test_to_html_fragment_renders_body():
 def test_faithful_preview_wraps_in_page_with_mathjax():
     if not _pandoc_available():
         pytest.skip("pandoc not available")
-    from epy_papers.tab import _build_preview_faithful
+    from epy_papers._ui.tab import _build_preview_faithful
 
     src = (
         "---\ntitle: T\nabstract: A.\n---\n\n"
@@ -63,7 +63,7 @@ def test_faithful_preview_wraps_in_page_with_mathjax():
 def test_faithful_preview_no_line_numbers_when_off():
     if not _pandoc_available():
         pytest.skip("pandoc not available")
-    from epy_papers.tab import _build_preview_faithful
+    from epy_papers._ui.tab import _build_preview_faithful
 
     src = "---\ntitle: T\nabstract: A.\n---\n\nBody.\n"
     html = _build_preview_faithful(src, {"name": "J", "line_numbers": "off"})
@@ -74,7 +74,7 @@ def test_faithful_preview_no_line_numbers_when_off():
 def test_fast_preview_numbers_per_visual_row():
     # The in-process (no-pandoc) preview must use the SAME per-visual-row
     # gutter as the faithful one, not a per-paragraph counter.
-    from epy_papers.tab import _build_preview_html
+    from epy_papers._ui.tab import _build_preview_html
 
     html = _build_preview_html(
         "Body paragraph one.\n\nBody paragraph two.\n",
@@ -86,14 +86,14 @@ def test_fast_preview_numbers_per_visual_row():
 
 
 def test_fast_preview_no_gutter_when_off():
-    from epy_papers.tab import _build_preview_html
+    from epy_papers._ui.tab import _build_preview_html
 
     html = _build_preview_html("Body.\n", {"name": "J", "line_numbers": "off"})
     assert "epy-lnum-gutter" not in html
 
 
 def test_preview_shows_dismissible_approximation_notice():
-    from epy_papers.tab import _build_preview_html
+    from epy_papers._ui.tab import _build_preview_html
 
     html = _build_preview_html(
         "Body.\n", {"name": "J", "line_numbers": "continuous"}
@@ -104,7 +104,7 @@ def test_preview_shows_dismissible_approximation_notice():
 
 
 def test_preview_no_notice_when_line_numbers_off():
-    from epy_papers.tab import _build_preview_html
+    from epy_papers._ui.tab import _build_preview_html
 
     html = _build_preview_html("Body.\n", {"name": "J", "line_numbers": "off"})
     assert 'id="epy-ln-notice"' not in html

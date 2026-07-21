@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import epy_papers as ep
-from epy_papers._blocks import compose_manuscript
+from epy_papers._core._blocks import compose_manuscript
 
 BILINGUAL_PAPER = (
     "---\n"

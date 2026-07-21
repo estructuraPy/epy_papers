@@ -17,7 +17,7 @@ from typing import Any
 from PySide6.QtGui import QColor, QFont, QPalette
 from PySide6.QtWidgets import QApplication
 
-from epy_papers.themes_base import Theme
+from epy_papers._ui.themes_base import Theme
 
 ASSETS_PACKAGE = "epy_papers._config._assets.themes"
 
