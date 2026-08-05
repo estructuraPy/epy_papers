@@ -11,7 +11,15 @@ from importlib import resources
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QTimer, QUrl, Signal
-from PySide6.QtGui import QFont, QFontDatabase, QTextCursor
+from PySide6.QtGui import (
+    QDesktopServices,
+    QFont,
+    QFontDatabase,
+    QKeySequence,
+    QShortcut,
+    QTextCursor,
+)
+from PySide6.QtWebEngineCore import QWebEnginePage
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWidgets import (
     QPlainTextEdit,
@@ -25,6 +33,85 @@ from epy_papers._core._authoring import split_front_matter
 RENDER_DEBOUNCE_MS = 250
 POS_POLL_MS = 400
 UNTITLED = "untitled.md"
+
+# In-page anchor navigation for previews that carry a <base href>. A plain
+# href="#id" resolves AGAINST THE BASE (the manuscript's directory), so
+# clicking a citation, footnote or section link would navigate the preview
+# away instead of jumping. The hook intercepts anchor-only links, scrolls to
+# the target and records each jump (with the scroll offset it left from) in
+# the session history, so Back returns to the exact previous position.
+# Mirrors epy_reports._core.template._ANCHOR_NAV.
+_ANCHOR_NAV_JS = """
+<script>
+(function () {
+  function scrollingEl() {
+    return document.scrollingElement || document.documentElement;
+  }
+  function targetFor(id) {
+    var el = document.getElementById(id);
+    if (el) return el;
+    var byName = document.getElementsByName(id);
+    return byName.length ? byName[0] : null;
+  }
+  function selfUrl(hash) {
+    return location.href.split('#')[0] + (hash ? '#' + hash : '');
+  }
+  document.addEventListener('click', function (ev) {
+    var node = ev.target;
+    while (node && node.nodeType === 1 && node.tagName !== 'A') {
+      node = node.parentNode;
+    }
+    if (!node || node.nodeType !== 1) return;
+    var href = node.getAttribute('href') || '';
+    if (href.charAt(0) !== '#') return;
+    ev.preventDefault();
+    var id = decodeURIComponent(href.slice(1));
+    var el = targetFor(id);
+    if (!el) return;
+    try {
+      history.replaceState({ epyScroll: scrollingEl().scrollTop }, '',
+                           selfUrl(location.hash.slice(1)));
+      history.pushState({ epyAnchor: id }, '', selfUrl(id));
+    } catch (e) { /* degraded: jump without history */ }
+    el.scrollIntoView({ block: 'start' });
+  }, true);
+  window.addEventListener('popstate', function (ev) {
+    var st = ev.state || {};
+    if (typeof st.epyScroll === 'number') {
+      scrollingEl().scrollTop = st.epyScroll;
+      return;
+    }
+    if (st.epyAnchor) {
+      var el = targetFor(st.epyAnchor);
+      if (el) el.scrollIntoView({ block: 'start' });
+    }
+  });
+})();
+</script>
+"""
+
+
+class _ExternalOpenPage(QWebEnginePage):
+    """Throwaway page that redirects any load to the system browser.
+
+    ``QWebEngineView`` swallows ``target="_blank"`` links unless
+    ``createWindow`` returns a page; this stand-in receives the popup
+    navigation and hands the URL to the OS instead.
+    """
+
+    def acceptNavigationRequest(  # noqa: N802 (Qt override)
+        self, url: QUrl, _type, _is_main_frame: bool
+    ) -> bool:
+        QDesktopServices.openUrl(url)
+        self.deleteLater()
+        return False
+
+
+class _PreviewView(QWebEngineView):
+    """Preview view: popup links go to the system browser."""
+
+    def createWindow(self, _window_type):  # noqa: N802 (Qt override)
+        return _ExternalOpenPage(self)
 
 _CAPTURE_POS_JS = (
     "(function () {"
@@ -434,6 +521,7 @@ def _build_preview_faithful(
         f"{ln_notice}"
         f'<div class="page"><div class="body-section">{fragment}</div></div>'
         f"{ln_js}"
+        f"{_ANCHOR_NAV_JS if base_href else ''}"
         "</body></html>"
     )
 
@@ -637,7 +725,19 @@ class PaperTab(QWidget):
         self.editor = QPlainTextEdit(self)
         self._setup_editor()
 
-        self.view = QWebEngineView(self)
+        self.view = _PreviewView(self)
+        # A fresh render must not leave stale history entries behind:
+        # Back should mean "return from a link jump", never "step through
+        # old debounce renders". Loads issued by _render_now are flagged;
+        # navigation loads (Back from a web page) keep their history.
+        self._expect_render_load = False
+        self.view.loadFinished.connect(self._on_preview_load_finished)
+        back = QShortcut(QKeySequence("Alt+Left"), self.view)
+        back.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
+        back.activated.connect(self.view.back)
+        forward = QShortcut(QKeySequence("Alt+Right"), self.view)
+        forward.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
+        forward.activated.connect(self.view.forward)
 
         splitter = QSplitter(Qt.Orientation.Horizontal, self)
         splitter.addWidget(self.editor)
@@ -1031,7 +1131,14 @@ class PaperTab(QWidget):
         url.setQuery(f"r={self._render_seq}")
         if preserve and self._last_pos:
             url.setFragment(self._last_pos)
+        self._expect_render_load = True
         self.view.load(url)
+
+    def _on_preview_load_finished(self, _ok: bool) -> None:
+        """Drop stale history after render loads (keep it for navigation)."""
+        if self._expect_render_load:
+            self._expect_render_load = False
+            self.view.history().clear()
 
     def _poll_position(self) -> None:
         """Cache the preview scroll position for the next render."""

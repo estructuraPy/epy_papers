@@ -4,6 +4,20 @@ All notable changes to `epy_papers` are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] — 2026-08-05
+
+### Fixed
+- **Preview links.** In the Pandoc (journal) preview, citation, footnote
+  and section links now jump in-page: the preview `<base href>` (needed
+  for relative figures) was capturing every `href="#id"` and navigating
+  the preview away. `target="_blank"` links were silently swallowed;
+  they now open in the system browser.
+
+### Added
+- **Back/Forward in the preview.** Back returns the preview to the exact
+  position it left before following a link (`Alt+Left` / `Alt+Right` or
+  the context menu); re-renders no longer pollute the navigation history.
+
 ## [0.2.0] — 2026-08-05
 
 ### Added

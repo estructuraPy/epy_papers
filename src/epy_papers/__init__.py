@@ -67,7 +67,7 @@ from ._core._validation import (  # noqa: E402
     validate,
 )
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 __all__ = [
     "Paper",
