@@ -4,6 +4,21 @@ All notable changes to `epy_papers` are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] — 2026-08-05
+
+### Added
+- **Windows file-association CLI.** `epy_papers --register [--as-default]`,
+  `--unregister` and `--set-default` now exist (HKCU, no admin), mirroring
+  epy_reports: the app appears under "Open with" for `.md` / `.markdown`
+  and in Settings > Default apps. The installer's `[Run]` entries — which
+  always invoked these flags — finally work.
+
+### Fixed
+- **Qt startup crash in conda environments (Windows).** The package now
+  pins the System32 ICU at import time (`_pin_system_icu`), preventing
+  `ImportError: DLL load failed ... (WinError 127)` when conda's
+  `Library\bin` ICU shadows the Windows one Qt links against.
+
 ## [0.1.7] — 2026-06-24
 
 ### Added

@@ -1334,6 +1334,62 @@ class PaperWindow(QMainWindow):
                 self.open_path(path)
 
 
+def _run_register(make_default: bool) -> int:
+    """Register the app for ``.md`` / ``.markdown`` on Windows."""
+    from epy_papers._core import winreg_assoc  # noqa: PLC0415
+
+    try:
+        changes = winreg_assoc.register(make_default=make_default)
+    except RuntimeError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    for line in changes:
+        print(line)
+    print(
+        "\nDone. You can right-click a .md / .markdown file > "
+        f"Open with > {APP_NAME}."
+    )
+    if make_default:
+        print(
+            f"\nOpening Settings -> Default apps for {APP_NAME}.\n"
+            "Pick each extension (.md, .markdown) and select\n"
+            f"{APP_NAME} from the list."
+        )
+        winreg_assoc.open_default_apps_settings()
+    return 0
+
+
+def _run_set_default() -> int:
+    """Open Settings -> Default apps so the user can pick this app."""
+    from epy_papers._core import winreg_assoc  # noqa: PLC0415
+
+    if not winreg_assoc.open_default_apps_settings():
+        print(
+            "Could not open the Settings page. Open it manually: "
+            f"Settings -> Apps -> Default apps -> search {APP_NAME}.",
+            file=sys.stderr,
+        )
+        return 2
+    return 0
+
+
+def _run_unregister() -> int:
+    """Remove the file-association keys created by ``--register``."""
+    from epy_papers._core import winreg_assoc  # noqa: PLC0415
+
+    try:
+        changes = winreg_assoc.unregister()
+    except RuntimeError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 2
+    if not changes:
+        print("Nothing to remove.")
+        return 0
+    for line in changes:
+        print(line)
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     """Entry point for the epy_papers console/GUI script."""
     parser = argparse.ArgumentParser(
@@ -1348,6 +1404,36 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Show version and exit.",
     )
+    parser.add_argument(
+        "--register",
+        action="store_true",
+        help=(
+            f"Add an 'Open with {APP_NAME}' entry for .md and "
+            ".markdown on Windows (HKCU, no admin)."
+        ),
+    )
+    parser.add_argument(
+        "--as-default",
+        action="store_true",
+        help=(
+            f"With --register, also set {APP_NAME} as the default "
+            "program for the supported extensions."
+        ),
+    )
+    parser.add_argument(
+        "--unregister",
+        action="store_true",
+        help="Remove the keys created by --register.",
+    )
+    parser.add_argument(
+        "--set-default",
+        action="store_true",
+        help=(
+            "Open Settings -> Default apps so you can pick "
+            f"{APP_NAME} as the handler. Use this after --register "
+            "since Windows requires user confirmation."
+        ),
+    )
     args = parser.parse_args(argv)
 
     if args.version:
@@ -1357,6 +1443,13 @@ def main(argv: list[str] | None = None) -> int:
             __version__ = "0.1.0"
         print(f"epy_papers {__version__}")
         return 0
+
+    if args.unregister:
+        return _run_unregister()
+    if args.register:
+        return _run_register(make_default=args.as_default)
+    if args.set_default:
+        return _run_set_default()
 
     app = QApplication.instance() or QApplication(sys.argv)
     logo_pix = _load_branding_pixmap("epy_papers.png")
