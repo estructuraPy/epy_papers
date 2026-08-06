@@ -50,3 +50,6 @@ tutorials/**/_render/
 # Local scratch
 scratch/
 tmp/
+
+# audit-loop reports (DeepSeek), local only
+.audit_deepseek/
