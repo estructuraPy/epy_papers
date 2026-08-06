@@ -4,6 +4,30 @@ All notable changes to `epy_papers` are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.1] — 2026-08-06
+
+### Fixed
+- **The Ubuntu `.deb` builder wrote nowhere and versioned itself 0.0.0.**
+  Its path arithmetic pointed above the repository, so it read a
+  `pyproject.toml` that does not exist and aimed its output at a folder
+  that no longer exists. Both are corrected, and the version reader now
+  falls back to the package `__version__`.
+- **Theme assets are read through one loader.** `_core/epyson` built its
+  own `importlib.resources` lookups; every read now goes through
+  `_config/_loader`, and a missing `colors.epyson` fails loudly instead
+  of silently emptying every theme's callout colours.
+- The bundled brand logos (`estructurapy.png`, `imagotipo_anm.png`) were
+  missing from the packaging assets, so only this app lacked them there.
+- `REQUIREMENTS.md` still pointed at pre-refactor module paths.
+
+### Changed
+- **Internal layout aligned with epy_reports and epy_slides** — same
+  folders and module names across the three apps. The modules under
+  `_core/` are packages (they were loose files here), `_render` is now
+  `renderer` as in its siblings, the build tools lost their `installer/`
+  and `tools/` wrappers, and the `Theme` model and catalogue moved to
+  `_core`. No public API changed.
+
 ## [0.3.0] — 2026-08-05
 
 ### Fixed
