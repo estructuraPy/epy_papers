@@ -188,7 +188,7 @@ def _design_css() -> str:
     unavailable, so the preview degrades gracefully.
     """
     try:
-        from epy_papers._ui import themes as _t  # noqa: PLC0415
+        from epy_papers._core import themes as _t  # noqa: PLC0415
         from epy_papers._core._design import design_css  # noqa: PLC0415
 
         return design_css(_t.get(_t.DEFAULT_THEME_ID), scope="")

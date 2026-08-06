@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from epy_papers._ui import themes
+from epy_papers._core import themes
 from epy_papers._core._design import (
     DESIGN_BLOCK_LABELS,
     DESIGN_BLOCKS,

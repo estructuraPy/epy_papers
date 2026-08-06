@@ -42,10 +42,12 @@ from PySide6.QtCore import (  # noqa: E402
 from PySide6.QtWidgets import QApplication, QDialog  # noqa: E402
 
 from epy_papers._core import _i18n as i18n  # noqa: E402
-from epy_papers._ui import themes  # noqa: E402
-from epy_papers.app import PaperWindow  # noqa: E402
+from epy_papers._core import themes  # noqa: E402
 from epy_papers._ui.design_block_dialog import DesignBlockDialog  # noqa: E402
-from epy_papers._ui.theme_gallery_dialog import ThemeGalleryDialog  # noqa: E402
+from epy_papers._ui.theme_gallery_dialog import (
+    ThemeGalleryDialog,  # noqa: E402
+)
+from epy_papers.app import PaperWindow  # noqa: E402
 
 OUT = (
     REPO_ROOT / "src" / "epy_papers" / "_config" / "_assets" / "screenshots"

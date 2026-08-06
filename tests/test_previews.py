@@ -13,7 +13,7 @@ def qapp():
 
 
 def test_theme_preview_for_every_theme(qapp):
-    from epy_papers._ui import themes
+    from epy_papers._core import themes
     from epy_papers._ui._previews import THEME_THUMB, theme_preview
 
     assert themes.THEMES, "the theme catalogue must not be empty"
@@ -43,7 +43,7 @@ def test_design_block_dialog_lists_all_blocks(qapp):
 
 
 def test_theme_gallery_lists_all_themes(qapp):
-    from epy_papers._ui import themes
+    from epy_papers._core import themes
     from epy_papers._ui.theme_gallery_dialog import ThemeGalleryDialog
 
     dlg = ThemeGalleryDialog(current_id=themes.DEFAULT_THEME_ID)

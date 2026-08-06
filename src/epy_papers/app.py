@@ -42,7 +42,7 @@ from epy_papers._core import _i18n as i18n
 # epy_papers bundles its own copy of the suite theme system, so the app keeps
 # the same Fluent/WinUI appearance as epy_reports / epy_slides regardless of
 # whether the sibling apps are installed alongside it.
-from epy_papers._ui import themes as _themes
+from epy_papers._core import themes as _themes
 from epy_papers._ui.about_dialog import _load_branding_pixmap
 
 APP_NAME = "epy_papers"
@@ -291,7 +291,9 @@ class PaperWindow(QMainWindow):
             self._open_design_block_picker
         )
 
-        from epy_papers._core._design import DISCLOSURE_PRESETS  # noqa: PLC0415
+        from epy_papers._core._design import (
+            DISCLOSURE_PRESETS,  # noqa: PLC0415
+        )
         self.disclosure_actions: list[QAction] = []
         for d_kind, (d_label, _d_text) in DISCLOSURE_PRESETS.items():
             d_act = QAction(f"Disclosure: {d_label}", self)
