@@ -14,7 +14,7 @@ Run from the project root:
     python src/epy_papers/_core/_packaging/linux/build_deb.py
 
 Output:
-    src/epy_papers/_core/_packaging/dist/epy-papers_<version>_all.deb
+    dist/epy-papers_<version>_all.deb
 
 The script prints a verification listing of the ar members at the end.
 """
@@ -95,7 +95,7 @@ PKG_ROOT = Path(__file__).resolve().parent.parent
 # REPO_ROOT = repo root (.../_packaging/linux -> _packaging -> _core ->
 # epy_papers -> src -> root).
 REPO_ROOT = Path(__file__).resolve().parents[5]
-OUT_DIR = PKG_ROOT / "dist"
+OUT_DIR = REPO_ROOT / "dist"
 
 # Source tree roots
 SRC_PKG = REPO_ROOT / "src" / "epy_papers"

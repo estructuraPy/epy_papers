@@ -30,15 +30,14 @@
 #define AppId "{{33902761-A747-4C35-A706-2491C5932728}"
 #define AppExeName "epy_papers.exe"
 ; Paths are relative to the location of this .iss file
-; (src\epy_papers\_core\_packaging\windows\). DistDir points to
-; the PyInstaller output at the true project root (dist\ is produced by
-; build.py, which runs from the root); IconFile and OutputDir point within
-; the _packaging\ cluster (installer\ and assets_build\ are siblings there,
-; same as they were at the project root, so those two relative paths are
-; unchanged by the move).
-#define DistDir "..\..\..\..\..\..\dist\epy_papers"
-#define IconFile "..\..\assets_build\epy_papers.ico"
-#define OutputDir "..\..\installer\dist"
+; (src\epy_papers\_core\_packaging\windows\). DistDir and OutputDir both
+; point at the repository root's dist\ — the PyInstaller staging tree that
+; build.py produces, and where the finished setup.exe lands, matching
+; epy_reports and epy_slides. IconFile sits one level up, in the sibling
+; assets_build\ inside _packaging\.
+#define DistDir "..\..\..\..\..\dist\epy_papers"
+#define IconFile "..\assets_build\epy_papers.ico"
+#define OutputDir "..\..\..\..\..\dist"
 
 [Setup]
 AppId={#AppId}
