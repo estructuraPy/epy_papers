@@ -137,7 +137,7 @@ matter (everything the submission draft needs, journal-independent) followed by
 a Markdown body. Title / abstract / keywords accept either a plain scalar
 (single language) or an ``{es, en}`` mapping (bilingual); ``language`` (default
 ``en``) names the primary variant, and the journal profile decides whether BOTH
-are emitted. See `src/epy_papers/_authoring.py` and the replication fixtures
+are emitted. See `src/epy_papers/_core/_authoring/__init__.py` and the replication fixtures
 (`navarro_*.md`) under `tests/`.
 
 ```yaml
@@ -176,7 +176,7 @@ bibliography: refs.bib
 Body text with citations [@key] ...
 ```
 
-**Content blocks the engine assembles per profile** (`src/epy_papers/_blocks.py`):
+**Content blocks the engine assembles per profile** (`src/epy_papers/_core/_blocks/__init__.py`):
 title page (author identity stripped when double-blind), bilingual
 title/abstract/keywords (both languages when the profile is bilingual, primary
 first), Highlights list (when the profile requests it), and a Declarations
@@ -188,7 +188,7 @@ Context).
 
 One universal manuscript (single column, double spaced, continuous line
 numbers, 12 pt serif, Letter/A4) parameterised per profile
-(`src/epy_papers/_render.py`):
+(`src/epy_papers/_core/renderer/__init__.py`):
 
 - **DOCX** — Pandoc + a generated reference document
   (`src/epy_papers/_config/_assets/reference_docx/submission.docx`, built by
@@ -210,7 +210,7 @@ numbers, 12 pt serif, Letter/A4) parameterised per profile
 
 `Paper.validate(journal)` returns a typed `ValidationResult` of `Warning`
 records (`code`, `severity`, `message`) instead of plain strings
-(`src/epy_papers/_validation.py`). It checks: abstract word count (per language),
+(`src/epy_papers/_core/_validation/__init__.py`). It checks: abstract word count (per language),
 title char limit, keyword min/max, highlights count and per-item char limit,
 bilingual presence when required, required declarations present, double-blind
 compliance (author identity removed), page size and citation style. It never

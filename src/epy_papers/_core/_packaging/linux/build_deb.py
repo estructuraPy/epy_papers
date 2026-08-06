@@ -33,13 +33,28 @@ from pathlib import Path
 # Configuration
 # ---------------------------------------------------------------------------
 def _read_pyproject_version() -> str:
-    """Single source of truth: read ``version`` from pyproject.toml."""
-    pyproject = Path(__file__).resolve().parents[6] / "pyproject.toml"
+    """Single source of truth: the version declared for this package.
+
+    Reads the literal ``version`` from ``pyproject.toml``. When the
+    project declares ``dynamic = ["version"]`` — hatch then reads the
+    real value from the package ``__init__`` — fall back to that
+    ``__version__`` instead of silently packaging the .deb as "0.0.0".
+    """
+    root = Path(__file__).resolve().parents[5]
     try:
-        text = pyproject.read_text(encoding="utf-8")
+        text = (root / "pyproject.toml").read_text(encoding="utf-8")
+    except OSError:
+        text = ""
+    m = re.search(r'(?m)^\s*version\s*=\s*"([^"]+)"', text)
+    if m:
+        return m.group(1)
+    try:
+        init = (root / "src" / "epy_papers" / "__init__.py").read_text(
+            encoding="utf-8"
+        )
     except OSError:
         return "0.0.0"
-    m = re.search(r'(?m)^\s*version\s*=\s*"([^"]+)"', text)
+    m = re.search(r'(?m)^__version__\s*=\s*"([^"]+)"', init)
     return m.group(1) if m else "0.0.0"
 
 
@@ -75,12 +90,12 @@ DESCRIPTION_LONG = """\
 # is used — pypandoc-binary's bundled pandoc is NOT vendored here.
 DEPENDS = "python3 (>= 3.10), python3-venv, pandoc"
 
-# _PACKAGING_DIR is the parent shared by installer/, assets_build/ and
-# tools/ (see src/epy_papers/_core/_packaging/); REPO_ROOT is the true
-# repository root, five levels further up.
-_PACKAGING_DIR = Path(__file__).resolve().parent.parent.parent
-REPO_ROOT = Path(__file__).resolve().parents[6]
-OUT_DIR = _PACKAGING_DIR / "installer" / "dist"
+# PKG_ROOT = _core/_packaging/ (this script lives at .../_packaging/linux/).
+PKG_ROOT = Path(__file__).resolve().parent.parent
+# REPO_ROOT = repo root (.../_packaging/linux -> _packaging -> _core ->
+# epy_papers -> src -> root).
+REPO_ROOT = Path(__file__).resolve().parents[5]
+OUT_DIR = PKG_ROOT / "dist"
 
 # Source tree roots
 SRC_PKG = REPO_ROOT / "src" / "epy_papers"
@@ -454,7 +469,7 @@ def _verify_deb(path: Path) -> None:
 
 def main() -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    png_path = _PACKAGING_DIR / "assets_build" / "epy_papers.png"
+    png_path = PKG_ROOT / "assets_build" / "epy_papers.png"
 
     print("Building control.tar.gz ...")
     control_tar = _build_control_tar()
