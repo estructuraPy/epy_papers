@@ -192,7 +192,7 @@ numbers, 12 pt serif, Letter/A4) parameterised per profile
 
 - **DOCX** — Pandoc + a generated reference document
   (`src/epy_papers/_config/_assets/reference_docx/submission.docx`, built by
-  `src/epy_papers/_core/_packaging/tools/make_reference_docx.py`) carrying the
+  `src/epy_papers/_core/_packaging/make_reference_docx/__init__.py`) carrying the
   body font, double spacing, page geometry and heading styles.
 - **LaTeX / PDF** — Pandoc +
   `src/epy_papers/_config/_assets/templates/manuscript.latex` plus the

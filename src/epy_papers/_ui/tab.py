@@ -493,7 +493,7 @@ def _build_preview_faithful(
     to the fast preview.
     """
     from epy_papers import Paper  # noqa: PLC0415
-    from epy_papers._core._render import Renderer  # noqa: PLC0415
+    from epy_papers._core.renderer import Renderer  # noqa: PLC0415
 
     paper = Paper(text, base_dir)
     fragment = Renderer(paper.manuscript, profile or {}).to_html_fragment()

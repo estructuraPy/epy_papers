@@ -6,7 +6,7 @@ Run from the project root:
 
 This produces the PyInstaller onedir layout under ``dist/epy_papers/``,
 which is the staging folder packaged by the Windows installer
-(``src/epy_papers/_core/_packaging/installer/windows/epy_papers.iss``) and
+(``src/epy_papers/_core/_packaging/windows/epy_papers.iss``) and
 the Linux ``.deb`` builder.
 It is an intermediate build artifact, not a distributable app — the
 shipped deliverables are the ``setup.exe`` and the ``.deb``.
@@ -146,7 +146,7 @@ def main() -> int:
     print(f"\nDone. Installer input: {produced}")
     print(
         "Next: build the installer "
-        "(src/epy_papers/_core/_packaging/installer/windows/epy_papers.iss)."
+        "(src/epy_papers/_core/_packaging/windows/epy_papers.iss)."
     )
     return 0
 

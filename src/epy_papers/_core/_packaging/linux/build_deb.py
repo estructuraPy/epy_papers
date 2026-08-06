@@ -11,10 +11,10 @@ A .deb is an ar(1) archive with three members in this exact order:
 The ar format uses fixed 60-byte ASCII headers; see ar(5).
 
 Run from the project root:
-    python src/epy_papers/_core/_packaging/installer/linux/build_deb.py
+    python src/epy_papers/_core/_packaging/linux/build_deb.py
 
 Output:
-    src/epy_papers/_core/_packaging/installer/dist/epy-papers_<version>_all.deb
+    src/epy_papers/_core/_packaging/dist/epy-papers_<version>_all.deb
 
 The script prints a verification listing of the ar members at the end.
 """

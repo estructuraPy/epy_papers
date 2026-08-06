@@ -2,9 +2,9 @@
 ; Version 0.1.5
 ;
 ; Build from the project root AFTER running `python build.py`:
-;   ISCC.exe src\epy_papers\_core\_packaging\installer\windows\epy_papers.iss
+;   ISCC.exe src\epy_papers\_core\_packaging\windows\epy_papers.iss
 ;
-; Output: src\epy_papers\_core\_packaging\installer\dist\epy_papers-setup-0.1.5.exe
+; Output: src\epy_papers\_core\_packaging\dist\epy_papers-setup-0.1.5.exe
 ;
 ; Design decisions:
 ;   - PrivilegesRequired=lowest  -> per-user install; no UAC prompt.
@@ -30,7 +30,7 @@
 #define AppId "{{33902761-A747-4C35-A706-2491C5932728}"
 #define AppExeName "epy_papers.exe"
 ; Paths are relative to the location of this .iss file
-; (src\epy_papers\_core\_packaging\installer\windows\). DistDir points to
+; (src\epy_papers\_core\_packaging\windows\). DistDir points to
 ; the PyInstaller output at the true project root (dist\ is produced by
 ; build.py, which runs from the root); IconFile and OutputDir point within
 ; the _packaging\ cluster (installer\ and assets_build\ are siblings there,

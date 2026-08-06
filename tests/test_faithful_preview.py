@@ -28,7 +28,7 @@ def test_to_html_fragment_renders_body():
     if not _pandoc_available():
         pytest.skip("pandoc not available")
     from epy_papers._core._authoring import Manuscript
-    from epy_papers._core._render import Renderer
+    from epy_papers._core.renderer import Renderer
 
     src = (
         "---\ntitle: Faithful Test\nabstract: An abstract.\n---\n\n"

@@ -13,7 +13,7 @@ doc / template, not here.
 
 from __future__ import annotations
 
-from ._authoring import LANGS, Manuscript
+from epy_papers._core._authoring import LANGS, Manuscript
 
 __all__ = ["compose_manuscript", "ManuscriptDoc"]
 

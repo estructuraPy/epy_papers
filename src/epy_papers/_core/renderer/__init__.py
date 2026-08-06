@@ -28,8 +28,8 @@ import os
 from importlib import resources
 from pathlib import Path
 
-from ._authoring import Manuscript
-from ._blocks import compose_manuscript
+from epy_papers._core._authoring import Manuscript
+from epy_papers._core._blocks import compose_manuscript
 
 __all__ = ["Renderer", "PandocMissingError"]
 

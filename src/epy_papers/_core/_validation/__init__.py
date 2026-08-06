@@ -12,7 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from ._authoring import LANGS, Manuscript
+from epy_papers._core._authoring import LANGS, Manuscript
 
 __all__ = ["Severity", "Warning", "ValidationResult", "validate"]
 

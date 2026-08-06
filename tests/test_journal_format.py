@@ -102,7 +102,7 @@ def test_preview_shows_authors_when_not_blinded():
 
 def test_render_line_number_flag():
     from epy_papers._core._authoring import Manuscript
-    from epy_papers._core._render import Renderer
+    from epy_papers._core.renderer import Renderer
 
     src = "---\ntitle: T\nabstract: A\n---\n\nBody.\n"
     on = Renderer(Manuscript.from_source(src), {"line_numbers": "continuous"})

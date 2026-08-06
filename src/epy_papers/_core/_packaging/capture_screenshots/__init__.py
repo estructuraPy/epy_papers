@@ -8,7 +8,7 @@ walks through) to PNGs under
 Run it headlessly::
 
     QT_QPA_PLATFORM=offscreen python \
-        src/epy_papers/_core/_packaging/tools/capture_screenshots.py
+        src/epy_papers/_core/_packaging/capture_screenshots/__init__.py
 
 It writes both the English files (``editor.png`` …) and the Spanish
 variants (``editor_es.png`` …) by toggling the live UI language.

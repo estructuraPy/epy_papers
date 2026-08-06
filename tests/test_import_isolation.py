@@ -1,7 +1,7 @@
 """Import-isolation gate (headless / no-GUI-toolkit contract).
 
 ``epy_papers``'s root package facade (``Paper`` / journal-catalog functions)
-imports only ``_authoring``, ``_render`` and ``_validation`` at module level —
+imports only ``_authoring``, ``renderer`` and ``_validation`` at module level —
 none of those pull in ``PySide6`` at import time; Qt is confined to the
 editor widgets (``app.py``, ``tab.py``, dialog modules, ``_previews.py``)
 that a bare ``import epy_papers`` never touches. This test proves the

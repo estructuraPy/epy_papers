@@ -8,7 +8,7 @@ Each ICO frame letterboxes the logo onto a square transparent canvas,
 preserving aspect ratio (centered).  epy_papers.png is NOT overwritten.
 
 Run from the project root:
-    python src/epy_papers/_core/_packaging/installer/make_icon.py
+    python src/epy_papers/_core/_packaging/make_icon/__init__.py
 """
 
 from __future__ import annotations

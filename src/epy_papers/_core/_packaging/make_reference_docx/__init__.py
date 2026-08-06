@@ -16,7 +16,7 @@ only needs ``pypandoc``.
 
 Usage::
 
-    python src/epy_papers/_core/_packaging/tools/make_reference_docx.py
+    python src/epy_papers/_core/_packaging/make_reference_docx/__init__.py
 """
 
 from __future__ import annotations

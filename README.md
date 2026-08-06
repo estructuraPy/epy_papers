@@ -59,7 +59,7 @@ too. Full spec in `REQUIREMENTS.md` (§6b) and worked examples in `tests/`
   (LaTeX + HTML preview).
 - `_config/_assets/reference_docx/submission.docx` — the Word manuscript
   reference doc (Times New Roman 12 pt, double spaced, US Letter), generated
-  by `src/epy_papers/_core/_packaging/tools/make_reference_docx.py`.
+  by `src/epy_papers/_core/_packaging/make_reference_docx/__init__.py`.
 - `REQUIREMENTS.md` — the requirements derived from the survey, plus the
   authoring format, rendering pipeline and validation contract.
 - `docs/navarro_mora_publications.md` — real publications used as replication
