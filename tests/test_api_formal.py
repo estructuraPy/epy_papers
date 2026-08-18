@@ -54,7 +54,9 @@ class TestVersion:
 
     def test_version_parts_are_numeric(self):
         for part in ep.__version__.split("."):
-            assert re.match(r"^\d+", part), f"Non-numeric version part: {part!r}"
+            assert re.match(r"^\d+", part), (
+                f"Non-numeric version part: {part!r}"
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -91,7 +93,9 @@ class TestAllContract:
 
     def test_all_symbols_importable(self):
         for name in ep.__all__:
-            assert hasattr(ep, name), f"__all__ member {name!r} not found on module"
+            assert hasattr(ep, name), (
+                f"__all__ member {name!r} not found on module"
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -113,13 +117,17 @@ class TestPaperMethods:
         from epy_papers import Paper
 
         for method in self._REQUIRED_CLASSMETHODS:
-            assert callable(getattr(Paper, method)), f"Paper.{method!r} is not callable"
+            assert callable(getattr(Paper, method)), (
+                f"Paper.{method!r} is not callable"
+            )
 
     def test_all_required_methods_callable(self):
         from epy_papers import Paper
 
         for method in self._REQUIRED_METHODS:
-            assert callable(getattr(Paper, method)), f"{method!r} is not callable"
+            assert callable(getattr(Paper, method)), (
+                f"{method!r} is not callable"
+            )
 
 
 # ---------------------------------------------------------------------------

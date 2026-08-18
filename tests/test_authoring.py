@@ -3,7 +3,11 @@
 from __future__ import annotations
 
 from epy_papers import Author, Manuscript
-from epy_papers._core._authoring import Bilingual, BilingualList, split_front_matter
+from epy_papers._core._authoring import (
+    Bilingual,
+    BilingualList,
+    split_front_matter,
+)
 
 BILINGUAL_SOURCE = """---
 title:

@@ -58,14 +58,19 @@ def _pin_system_icu() -> None:
 
 _pin_system_icu()
 
-from ._core._authoring import Author, Bilingual, BilingualList, Manuscript  # noqa: E402
-from ._core.renderer import PandocMissingError, Renderer  # noqa: E402
+from ._core._authoring import (  # noqa: E402
+    Author,
+    Bilingual,
+    BilingualList,
+    Manuscript,
+)
 from ._core._validation import (  # noqa: E402
     Severity,
     ValidationResult,
     Warning,
     validate,
 )
+from ._core.renderer import PandocMissingError, Renderer  # noqa: E402
 
 __version__ = "0.3.1"
 
