@@ -11,7 +11,6 @@ composition assertions always run.
 from __future__ import annotations
 
 import epy_papers as ep
-from _pandoc import needs_pandoc
 
 # (fixture file, target journal id, expected language pair)
 CASES = [
@@ -63,7 +62,6 @@ def test_asce_fixture_validates(fixtures_dir):
     assert res.ok
 
 
-@needs_pandoc
 def test_replication_drafts_produced(fixtures_dir, tmp_path):
     """Each replication target produces a non-empty DOCX draft."""
     for name, jid in CASES:
@@ -72,7 +70,6 @@ def test_replication_drafts_produced(fixtures_dir, tmp_path):
         assert out.exists() and out.stat().st_size > 0
 
 
-@needs_pandoc
 def test_replication_latex_for_class_journals(fixtures_dir, tmp_path):
     """Elsevier and ASCE fixtures produce LaTeX using their official class."""
     es = _load(fixtures_dir, "navarro_timber_beam_values.md")

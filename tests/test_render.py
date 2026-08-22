@@ -6,7 +6,6 @@ Pandoc-dependent tests skip gracefully when Pandoc is absent.
 from __future__ import annotations
 
 import epy_papers as ep
-from _pandoc import needs_pandoc
 from epy_papers._core.renderer import Renderer
 
 SIMPLE = (
@@ -52,7 +51,6 @@ def test_latex_class_no_class_uses_article():
     assert bundled is False
 
 
-@needs_pandoc
 def test_to_docx_produces_file(tmp_path):
     """DOCX export writes a non-empty file."""
     out = ep.Paper(SIMPLE).to_draft(
@@ -61,7 +59,6 @@ def test_to_docx_produces_file(tmp_path):
     assert out.exists() and out.stat().st_size > 0
 
 
-@needs_pandoc
 def test_to_latex_selects_elsarticle(tmp_path):
     """LaTeX export for Engineering Structures uses elsarticle."""
     out = ep.Paper(SIMPLE).to_draft(
@@ -72,7 +69,6 @@ def test_to_latex_selects_elsarticle(tmp_path):
     assert "elsarticle" in text
 
 
-@needs_pandoc
 def test_to_latex_ascelike(tmp_path):
     """LaTeX export for an ASCE journal uses ascelike."""
     out = ep.Paper(SIMPLE).to_draft(
@@ -81,7 +77,6 @@ def test_to_latex_ascelike(tmp_path):
     assert "ascelike" in out.read_text(encoding="utf-8")
 
 
-@needs_pandoc
 def test_latex_applies_line_numbers_for_continuous(tmp_path):
     """Continuous line numbers add the lineno package."""
     out = ep.Paper(SIMPLE).to_draft(
@@ -90,7 +85,6 @@ def test_latex_applies_line_numbers_for_continuous(tmp_path):
     assert "lineno" in out.read_text(encoding="utf-8")
 
 
-@needs_pandoc
 def test_latex_figures_at_end_uses_endfloat(tmp_path):
     """A figures-at-end profile pulls in endfloat."""
     out = ep.Paper(SIMPLE).to_draft(
@@ -99,7 +93,6 @@ def test_latex_figures_at_end_uses_endfloat(tmp_path):
     assert "endfloat" in out.read_text(encoding="utf-8")
 
 
-@needs_pandoc
 def test_a4_geometry_for_a4_profile(tmp_path):
     """An A4 profile renders with a4paper geometry."""
     out = ep.Paper(SIMPLE).to_draft(

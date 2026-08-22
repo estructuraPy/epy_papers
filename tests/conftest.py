@@ -1,8 +1,5 @@
 """Shared pytest fixtures.
 
-``conftest.py`` is auto-loaded by pytest and makes the tests directory
-importable, so test modules can ``import _pandoc`` for the Pandoc guard.
-
 ``epy_papers`` is imported here -- before any test module -- so its
 ``_pin_system_icu()`` bootstrap runs ahead of every ``PySide6`` import.
 Test files that import ``PySide6.QtWidgets`` at module level before
@@ -14,7 +11,6 @@ that Qt links against); this mirrors epy_reports' conftest.py fix.
 from __future__ import annotations
 
 import os
-import sys
 from pathlib import Path
 
 import pytest
@@ -25,8 +21,6 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 import epy_papers  # noqa: E402, F401 — must precede any PySide6 import (ICU pin)
 
 _HERE = Path(__file__).parent
-if str(_HERE) not in sys.path:
-    sys.path.insert(0, str(_HERE))
 
 @pytest.fixture
 def fixtures_dir() -> Path:

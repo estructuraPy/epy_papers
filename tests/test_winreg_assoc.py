@@ -16,10 +16,15 @@ import pytest
 
 from epy_papers._core import winreg_assoc as wa
 
-windows_only = pytest.mark.skipif(
-    sys.platform != "win32",
-    reason="winreg_assoc only operates on Windows",
-)
+IS_WINDOWS = sys.platform == "win32"
+
+# The four cases at the bottom of this file used to carry
+# ``@pytest.mark.skipif(sys.platform != "win32")``. The suite's test job
+# runs on ubuntu-latest (.github/workflows/ci.yml), so that marker silenced
+# them on every CI run while reporting green. They assert the documented
+# contract for the platform they are actually on instead: the real HKCU
+# round trip on Windows, the documented RuntimeError refusal elsewhere.
+# Both halves are real behaviour of ``winreg_assoc``; neither is a skip.
 
 
 # ---------------------------------------------------------------------------
@@ -96,9 +101,14 @@ def test_open_default_apps_settings_false_off_windows(monkeypatch):
 # ---------------------------------------------------------------------------
 
 
-@windows_only
 def test_register_then_unregister_round_trip():
     """register writes the documented keys; unregister removes them."""
+    if not IS_WINDOWS:
+        with pytest.raises(RuntimeError, match="only supported on Windows"):
+            wa.register(make_default=False)
+        with pytest.raises(RuntimeError, match="only supported on Windows"):
+            wa.unregister()
+        return
     import winreg
 
     try:
@@ -127,11 +137,14 @@ def test_register_then_unregister_round_trip():
         )
 
 
-@windows_only
 def test_unregister_is_idempotent():
     """A second unregister on a clean hive does not raise."""
+    if not IS_WINDOWS:
+        with pytest.raises(RuntimeError, match="only supported on Windows"):
+            wa.unregister()
+        return
     wa.unregister()
-    wa.unregister()
+    assert wa.unregister() == []
 
 
 # ---------------------------------------------------------------------------
@@ -139,22 +152,28 @@ def test_unregister_is_idempotent():
 # ---------------------------------------------------------------------------
 
 
-@windows_only
 def test_main_unregister_runs_without_gui(capsys):
     """``main(["--unregister"])`` handles the mode and exits cleanly."""
     from epy_papers.app import main
 
+    if not IS_WINDOWS:
+        assert main(["--unregister"]) == 2
+        assert "only supported on Windows" in capsys.readouterr().err
+        return
     assert main(["--unregister"]) == 0
     out = capsys.readouterr().out
     assert "Nothing to remove" in out or "Removed" in out
 
 
-@windows_only
 def test_main_register_round_trip_via_cli(capsys):
     """The CLI register/unregister round trip leaves no keys behind."""
-    import winreg
-
     from epy_papers.app import main
+
+    if not IS_WINDOWS:
+        assert main(["--register"]) == 2
+        assert "only supported on Windows" in capsys.readouterr().err
+        return
+    import winreg
 
     try:
         assert main(["--register"]) == 0

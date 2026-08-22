@@ -1,18 +1,14 @@
-"""Tests for the WYSIWYG (Pandoc-rendered) faithful preview."""
+"""Tests for the WYSIWYG (Pandoc-rendered) faithful preview.
+
+The Pandoc-backed cases below used to sit behind a ``_pandoc_available()``
+probe that called ``pytest.skip``. ``pypandoc-binary>=1.13`` is a required
+dependency of this package and ships the pandoc executable, so the probe
+guarded against something that cannot be absent wherever the package is
+installed -- and it would have turned a broken pandoc into a green run.
+Pandoc failures are test failures now.
+"""
 
 from __future__ import annotations
-
-import pytest
-
-
-def _pandoc_available() -> bool:
-    try:
-        import pypandoc
-
-        pypandoc.get_pandoc_version()
-        return True
-    except Exception:
-        return False
 
 
 def test_mathjax_block_bundled():
@@ -25,8 +21,6 @@ def test_mathjax_block_bundled():
 
 
 def test_to_html_fragment_renders_body():
-    if not _pandoc_available():
-        pytest.skip("pandoc not available")
     from epy_papers._core._authoring import Manuscript
     from epy_papers._core.renderer import Renderer
 
@@ -43,8 +37,6 @@ def test_to_html_fragment_renders_body():
 
 
 def test_faithful_preview_wraps_in_page_with_mathjax():
-    if not _pandoc_available():
-        pytest.skip("pandoc not available")
     from epy_papers._ui.tab import _build_preview_faithful
 
     src = (
@@ -61,8 +53,6 @@ def test_faithful_preview_wraps_in_page_with_mathjax():
 
 
 def test_faithful_preview_no_line_numbers_when_off():
-    if not _pandoc_available():
-        pytest.skip("pandoc not available")
     from epy_papers._ui.tab import _build_preview_faithful
 
     src = "---\ntitle: T\nabstract: A.\n---\n\nBody.\n"

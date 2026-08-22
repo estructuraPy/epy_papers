@@ -2,7 +2,6 @@
 
 These tests cover the public API without launching the Qt application.
 """
-import pytest
 
 
 def test_available_journals_nonempty():
@@ -71,17 +70,22 @@ def test_journal_profile_has_name():
 
 
 def test_welcome_md_parseable():
-    """welcome.md in assets must parse as a valid Paper without crashing."""
+    """welcome.md in assets must parse as a valid Paper without crashing.
+
+    The read used to sit in a try/except that skipped on "welcome.md not
+    yet bundled". It is bundled: it is tracked in the repository under
+    ``src/epy_papers/_config/_assets/`` and that whole directory is a
+    sub-package hatchling walks into (see the wheel target comment in
+    pyproject.toml). A missing manual is a packaging regression, so it
+    fails here now instead of quietly disabling this test.
+    """
     import importlib.resources
-    try:
-        text = (
-            importlib.resources.files("epy_papers._config._assets")
-            .joinpath("welcome.md")
-            .read_text(encoding="utf-8")
-        )
-    except Exception:
-        pytest.skip("welcome.md not yet bundled")
+    text = (
+        importlib.resources.files("epy_papers._config._assets")
+        .joinpath("welcome.md")
+        .read_text(encoding="utf-8")
+    )
     from epy_papers import Paper
     paper = Paper(text)
-    assert paper is not None
-    assert not paper.manuscript.title.is_empty()
+    assert paper.manuscript.title.get("en") == "epy_papers User Manual"
+    assert paper.manuscript.title.get("es") == "Manual de usuario epy_papers"
