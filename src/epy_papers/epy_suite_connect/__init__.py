@@ -4,7 +4,7 @@ epy_papers is the manuscript-to-journal manuscript library (one source,
 journal-compliant drafts for 50 journals). This package is the ONLY
 cross-suite interconnection point for epy_papers.
 
-App-GUI family (shared toolkit with epy_reports / epy_slides / epy_craft). It
+App-GUI family (shared toolkit with epy_reports / epy_slides / epy_draft). It
 currently exposes the suite identity contract (``get_suite_info``) and hosts
 the suite registry manifest.
 
