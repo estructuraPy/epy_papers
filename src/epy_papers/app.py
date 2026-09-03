@@ -8,6 +8,7 @@ import re
 import sys
 from pathlib import Path
 
+from epy_export import ORGANIZATION
 from PySide6.QtCore import QSettings, Qt, QTimer
 from PySide6.QtGui import (
     QAction,
@@ -132,7 +133,7 @@ class PaperWindow(QMainWindow):
         if not logo_pix.isNull():
             self.setWindowIcon(QIcon(logo_pix))
 
-        self._settings = QSettings("ANM Ingeniería", "epy_papers")
+        self._settings = QSettings(ORGANIZATION, "epy_papers")
 
         # Autosave never writes on top of an export: every export raises
         # this counter on entry and lowers it in a ``finally`` -- including
