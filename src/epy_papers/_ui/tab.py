@@ -10,6 +10,7 @@ from functools import lru_cache
 from importlib import resources
 from pathlib import Path
 
+import epy_export
 from PySide6.QtCore import Qt, QTimer, QUrl, Signal
 from PySide6.QtGui import (
     QDesktopServices,
@@ -839,8 +840,10 @@ class PaperTab(QWidget):
         """
         if self._path is None:
             return False
-        self._path.write_text(
-            self.editor.toPlainText(), encoding="utf-8"
+        # Atomic: a save that dies mid-write must not truncate the only
+        # copy, and the autosave timer makes that write far more frequent.
+        epy_export.write_text_atomic(
+            self._path, self.editor.toPlainText()
         )
         self._set_dirty(False)
         return True

@@ -40,6 +40,8 @@ _ES: dict[str, str] = {
     "Language": "Idioma",
     # --- submenu titles ---
     "Theme": "Tema",
+    "Autosave": "Guardado automático",
+    "Autosaved: {path}": "Guardado automático: {path}",
     # --- File menu ---
     "New": "Nuevo",
     "Open...": "Abrir...",

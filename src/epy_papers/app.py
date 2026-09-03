@@ -8,7 +8,7 @@ import re
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import QSettings, Qt
+from PySide6.QtCore import QSettings, Qt, QTimer
 from PySide6.QtGui import (
     QAction,
     QActionGroup,
@@ -50,6 +50,11 @@ APP_NAME = "epy_papers"
 SUPPORTED_EXTENSIONS = {".md", ".markdown"}
 
 FILE_FILTER = "Markdown paper (*.md *.markdown);;All files (*)"
+
+# Autosave cadence: one repeating timer on the window, not per tab, so
+# an idle app costs one wake-up. Kept next to the family's other
+# cadences (RENDER_DEBOUNCE_MS in _ui/tab.py).
+AUTOSAVE_INTERVAL_MS = 30_000
 
 _THEMES_AVAILABLE = True
 
@@ -129,6 +134,15 @@ class PaperWindow(QMainWindow):
 
         self._settings = QSettings("ANM Ingeniería", "epy_papers")
 
+        # Autosave never writes on top of an export: every export raises
+        # this counter on entry and lowers it in a ``finally`` -- including
+        # the TinyTeX offer, whose progress dialog runs a nested event loop
+        # in which the timer below can fire.
+        self._exports_in_flight = 0
+        self._autosave_timer = QTimer(self)
+        self._autosave_timer.setInterval(AUTOSAVE_INTERVAL_MS)
+        self._autosave_timer.timeout.connect(self._autosave_current)
+
         # Lazy import to avoid Qt initialisation order issues.
         from epy_papers._ui.tab import PaperTab  # noqa: PLC0415
 
@@ -160,6 +174,16 @@ class PaperWindow(QMainWindow):
                 )
             )
             self._apply_theme(saved_theme, persist=False)
+
+        # Autosave: off by default, the choice persists. ``setChecked``
+        # does not emit ``triggered``, so restoring it here neither
+        # re-persists the value nor goes through the toggle slot.
+        autosave_on = (
+            str(self._settings.value("autosave", "false")) == "true"
+        )
+        self.act_autosave.setChecked(autosave_on)
+        if autosave_on:
+            self._autosave_timer.start()
 
         # Internationalization
         self._capture_i18n()
@@ -202,6 +226,9 @@ class PaperWindow(QMainWindow):
         self.act_quit = QAction("Quit", self)
         self.act_quit.setShortcut(QKeySequence.StandardKey.Quit)
         self.act_quit.triggered.connect(self.close)
+
+        self.act_autosave = QAction("Autosave", self, checkable=True)
+        self.act_autosave.triggered.connect(self._toggle_autosave)
 
         self.act_bold = QAction("Bold", self)
         self.act_bold.setShortcut(QKeySequence("Ctrl+B"))
@@ -425,6 +452,8 @@ class PaperWindow(QMainWindow):
         self.language_menu = self.view_menu.addMenu("Language")
         for act in self.lang_group.actions():
             self.language_menu.addAction(act)
+        self.view_menu.addSeparator()
+        self.view_menu.addAction(self.act_autosave)
 
         self.help_menu = QMenu("&Help", self)
         self.help_menu.addAction(self.act_manual_en)
@@ -964,6 +993,7 @@ class PaperWindow(QMainWindow):
             target = target.with_suffix(".html")
         from epy_papers._ui.tab import _build_preview_html  # noqa: PLC0415
 
+        self._exports_in_flight += 1
         try:
             html = _build_preview_html(tab.text(), self._current_profile())
             target.write_text(html, encoding="utf-8")
@@ -974,6 +1004,8 @@ class PaperWindow(QMainWindow):
             QMessageBox.critical(
                 self, "Export HTML failed", str(exc)
             )
+        finally:
+            self._exports_in_flight -= 1
 
     def _do_export(
         self, tab, target: Path, fmt: str
@@ -991,23 +1023,32 @@ class PaperWindow(QMainWindow):
         text = tab.text()
         base_dir = tab.path.parent if tab.path else None
         journal_id = self._current_journal_id()
+        # Raised for the whole export, INCLUDING the TinyTeX offer: its
+        # progress dialog runs a nested event loop in which the autosave
+        # timer can fire while the paper is being exported.
+        self._exports_in_flight += 1
         try:
-            Paper(text, base_dir).to_draft(journal_id, target, fmt=fmt)
-            self.statusBar().showMessage(f"Exported: {target.name}", 5000)
-        except LatexMissingError:
-            if not self._offer_install_latex():
-                return
             try:
                 Paper(text, base_dir).to_draft(journal_id, target, fmt=fmt)
                 self.statusBar().showMessage(f"Exported: {target.name}", 5000)
+            except LatexMissingError:
+                if not self._offer_install_latex():
+                    return
+                try:
+                    Paper(text, base_dir).to_draft(journal_id, target, fmt=fmt)
+                    self.statusBar().showMessage(
+                        f"Exported: {target.name}", 5000
+                    )
+                except Exception as exc:  # noqa: BLE001
+                    QMessageBox.critical(
+                        self, f"Export {fmt.upper()} failed", str(exc)
+                    )
             except Exception as exc:  # noqa: BLE001
                 QMessageBox.critical(
                     self, f"Export {fmt.upper()} failed", str(exc)
                 )
-        except Exception as exc:  # noqa: BLE001
-            QMessageBox.critical(
-                self, f"Export {fmt.upper()} failed", str(exc)
-            )
+        finally:
+            self._exports_in_flight -= 1
 
     def _offer_install_latex(self) -> bool:
         """Offer to download + install a private TinyTeX; return success.
@@ -1219,6 +1260,38 @@ class PaperWindow(QMainWindow):
         self.statusBar().showMessage(f"Saved: {tab.path}", 3000)
         self._run_validation()
         return True
+
+    def _toggle_autosave(self, checked: bool) -> None:
+        """Persist the autosave choice and start or stop its timer."""
+        self._settings.setValue("autosave", "true" if checked else "false")
+        if checked:
+            self._autosave_timer.start()
+        else:
+            self._autosave_timer.stop()
+
+    def _autosave_current(self) -> None:
+        """Write the current tab when autosave is on and it is safe.
+
+        Goes through ``tab.save()`` and never ``_save_current``: a buffer
+        without a path returns ``False`` and nothing happens, whereas the
+        manual path falls back to a modal Save As dialog that would
+        interrupt the person typing. Validation is not re-run here: it is
+        what a person asked for on an explicit save, not something to
+        repeat every 30 s on a paper mid-edit.
+        """
+        if not self.act_autosave.isChecked():
+            return
+        if self._exports_in_flight > 0:
+            return
+        tab = self._current_tab()
+        if tab is None or not tab.dirty:
+            return
+        if not tab.save():
+            return
+        self._refresh_tab_title(tab)
+        self.statusBar().showMessage(
+            i18n.tr("Autosaved: {path}").format(path=str(tab.path)), 3000
+        )
 
     def _save_current_as(self) -> bool:
         """Prompt for a target path and write the current tab there."""
