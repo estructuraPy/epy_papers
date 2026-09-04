@@ -6,6 +6,7 @@ import argparse
 import importlib.resources
 import re
 import sys
+from collections.abc import Callable
 from pathlib import Path
 
 from epy_export import ORGANIZATION
@@ -1008,10 +1009,64 @@ class PaperWindow(QMainWindow):
         finally:
             self._exports_in_flight -= 1
 
+    def _run_off_thread(
+        self, title: str, label: str, work: Callable[[], None]
+    ) -> Exception | None:
+        """Run ``work`` on a worker thread behind a busy dialog.
+
+        Two things in this application are slow enough to matter: the
+        LaTeX compile and the one-time TinyTeX download. Run on the GUI
+        thread either of them stops the window repainting for as long as
+        it takes -- on a long paper the application looks hung, and a
+        person who clicks it again gets Windows offering to close it.
+
+        The dialog's own event loop is what keeps the window alive, so
+        ``work`` runs in another thread and MUST NOT touch a Qt object;
+        it takes what it needs as plain values and returns nothing.
+
+        Args:
+            title: Window title of the progress dialog.
+            label: The line shown inside it.
+            work: The callable to run off the GUI thread.
+
+        Returns:
+            The exception ``work`` raised, or ``None`` when it finished.
+        """
+        from PySide6.QtCore import Qt, QThread, Signal  # noqa: PLC0415
+        from PySide6.QtWidgets import QProgressDialog  # noqa: PLC0415
+
+        failure: dict[str, Exception] = {}
+
+        class _Worker(QThread):
+            done = Signal()
+
+            def run(self) -> None:
+                try:
+                    work()
+                except Exception as exc:  # noqa: BLE001 - reported by caller
+                    failure["error"] = exc
+                self.done.emit()
+
+        dialog = QProgressDialog(label, "", 0, 0, self)
+        dialog.setWindowTitle(title)
+        dialog.setCancelButton(None)
+        dialog.setWindowModality(Qt.WindowModality.WindowModal)
+        dialog.setMinimumDuration(0)
+
+        worker = _Worker()
+        # Queued across threads, so a worker that finishes before the
+        # dialog opens still closes it: the signal waits in the GUI
+        # thread's queue until exec() starts running the loop.
+        worker.done.connect(dialog.close)
+        worker.start()
+        dialog.exec()
+        worker.wait()
+        return failure.get("error")
+
     def _do_export(
         self, tab, target: Path, fmt: str
     ) -> None:
-        """Run paper.to_draft for the given format and report result.
+        """Write the paper in ``fmt``, off the GUI thread, and report.
 
         PDF is the only format that needs a LaTeX engine. When none is
         installed the export raises :class:`LatexMissingError`; we offer to
@@ -1021,33 +1076,42 @@ class PaperWindow(QMainWindow):
         from epy_papers import Paper  # noqa: PLC0415
         from epy_papers._core._latex import LatexMissingError  # noqa: PLC0415
 
+        if self._exports_in_flight:
+            self.statusBar().showMessage(
+                "An export is already running.", 5000
+            )
+            return
+
+        # Read on the GUI thread: the worker may not touch the widget.
         text = tab.text()
         base_dir = tab.path.parent if tab.path else None
         journal_id = self._current_journal_id()
-        # Raised for the whole export, INCLUDING the TinyTeX offer: its
-        # progress dialog runs a nested event loop in which the autosave
-        # timer can fire while the paper is being exported.
+
+        def _write() -> None:
+            Paper(text, base_dir).to_draft(journal_id, target, fmt=fmt)
+
+        title = f"Exporting {fmt.upper()}"
+        label = f"Writing {target.name}…"
+        # Raised for the whole export, INCLUDING the TinyTeX offer and
+        # both progress dialogs: each runs a nested event loop in which
+        # the autosave timer can fire while the paper is being written.
         self._exports_in_flight += 1
         try:
-            try:
-                Paper(text, base_dir).to_draft(journal_id, target, fmt=fmt)
-                self.statusBar().showMessage(f"Exported: {target.name}", 5000)
-            except LatexMissingError:
+            error = self._run_off_thread(title, label, _write)
+            if isinstance(error, LatexMissingError):
                 if not self._offer_install_latex():
                     return
-                try:
-                    Paper(text, base_dir).to_draft(journal_id, target, fmt=fmt)
-                    self.statusBar().showMessage(
-                        f"Exported: {target.name}", 5000
-                    )
-                except Exception as exc:  # noqa: BLE001
-                    QMessageBox.critical(
-                        self, f"Export {fmt.upper()} failed", str(exc)
-                    )
-            except Exception as exc:  # noqa: BLE001
+                # Once. A loop here would reinstall on every failure.
+                error = self._run_off_thread(title, label, _write)
+            if error is not None:
                 QMessageBox.critical(
-                    self, f"Export {fmt.upper()} failed", str(exc)
+                    self, f"Export {fmt.upper()} failed", str(error)
                 )
+                self.statusBar().showMessage(
+                    f"Export failed: {target.name}", 5000
+                )
+                return
+            self.statusBar().showMessage(f"Exported: {target.name}", 5000)
         finally:
             self._exports_in_flight -= 1
 
@@ -1055,12 +1119,9 @@ class PaperWindow(QMainWindow):
         """Offer to download + install a private TinyTeX; return success.
 
         LaTeX is optional and never bundled — PDF export downloads it on
-        demand only if the user agrees. The install runs on a worker thread
-        behind a busy progress dialog so the UI stays responsive.
+        demand only if the user agrees. The question is asked on the GUI
+        thread, where a modal belongs; only the download runs elsewhere.
         """
-        from PySide6.QtCore import Qt, QThread, Signal  # noqa: PLC0415
-        from PySide6.QtWidgets import QProgressDialog  # noqa: PLC0415
-
         from epy_papers._core._latex import DOWNLOAD_MB  # noqa: PLC0415
 
         answer = QMessageBox.question(
@@ -1077,39 +1138,21 @@ class PaperWindow(QMainWindow):
         if answer != QMessageBox.StandardButton.Yes:
             return False
 
-        result: dict[str, object] = {}
+        def _install() -> None:
+            from epy_papers._core._latex import (  # noqa: PLC0415
+                install_tinytex,
+            )
 
-        class _InstallWorker(QThread):
-            done = Signal()
+            install_tinytex()
 
-            def run(self) -> None:
-                from epy_papers._core._latex import (  # noqa: PLC0415
-                    install_tinytex,
-                )
-
-                try:
-                    result["engine"] = install_tinytex()
-                except Exception as exc:  # noqa: BLE001
-                    result["error"] = exc
-                self.done.emit()
-
-        dialog = QProgressDialog(
-            "Downloading and installing TinyTeX…", "", 0, 0, self
+        error = self._run_off_thread(
+            "Installing LaTeX",
+            "Downloading and installing TinyTeX…",
+            _install,
         )
-        dialog.setWindowTitle("Installing LaTeX")
-        dialog.setCancelButton(None)
-        dialog.setWindowModality(Qt.WindowModality.WindowModal)
-        dialog.setMinimumDuration(0)
-
-        worker = _InstallWorker()
-        worker.done.connect(dialog.close)
-        worker.start()
-        dialog.exec()
-        worker.wait()
-
-        if "error" in result:
+        if error is not None:
             QMessageBox.critical(
-                self, "TinyTeX install failed", str(result["error"])
+                self, "TinyTeX install failed", str(error)
             )
             return False
         return True
