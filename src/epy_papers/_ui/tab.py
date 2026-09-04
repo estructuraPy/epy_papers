@@ -29,6 +29,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from epy_papers._core import _i18n as i18n
 from epy_papers._core._authoring import split_front_matter
 
 RENDER_DEBOUNCE_MS = 250
@@ -780,8 +781,10 @@ class PaperTab(QWidget):
             QPlainTextEdit.LineWrapMode.WidgetWidth
         )
         self.editor.setPlaceholderText(
-            "Type paper Markdown here. "
-            "Preview updates on the right."
+            i18n.tr(
+                "Type paper Markdown here. "
+                "Preview updates on the right."
+            )
         )
 
     # ---------------------------------------------------------------- API

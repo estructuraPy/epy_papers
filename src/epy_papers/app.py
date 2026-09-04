@@ -1004,7 +1004,7 @@ class PaperWindow(QMainWindow):
             )
         except Exception as exc:
             QMessageBox.critical(
-                self, "Export HTML failed", str(exc)
+                self, i18n.tr("Export HTML failed"), str(exc)
             )
         finally:
             self._exports_in_flight -= 1
@@ -1078,7 +1078,7 @@ class PaperWindow(QMainWindow):
 
         if self._exports_in_flight:
             self.statusBar().showMessage(
-                "An export is already running.", 5000
+                i18n.tr("An export is already running."), 5000
             )
             return
 
@@ -1126,7 +1126,7 @@ class PaperWindow(QMainWindow):
 
         answer = QMessageBox.question(
             self,
-            "Install LaTeX for PDF export",
+            i18n.tr("Install LaTeX for PDF export"),
             "PDF export needs a LaTeX engine, which is not installed.\n\n"
             f"epy_papers can download and install a private TinyTeX "
             f"(~{DOWNLOAD_MB} MB) now — a one-time download reused on later "
@@ -1152,7 +1152,7 @@ class PaperWindow(QMainWindow):
         )
         if error is not None:
             QMessageBox.critical(
-                self, "TinyTeX install failed", str(error)
+                self, i18n.tr("TinyTeX install failed"), str(error)
             )
             return False
         return True
@@ -1368,7 +1368,7 @@ class PaperWindow(QMainWindow):
             choice = QMessageBox.question(
                 self,
                 "Reload",
-                "Discard unsaved changes and reload from disk?",
+                i18n.tr("Discard unsaved changes and reload from disk?"),
                 QMessageBox.StandardButton.Yes
                 | QMessageBox.StandardButton.No,
                 QMessageBox.StandardButton.No,
@@ -1392,7 +1392,7 @@ class PaperWindow(QMainWindow):
         )
         choice = QMessageBox.question(
             self,
-            "Unsaved changes",
+            i18n.tr("Unsaved changes"),
             f"'{name}' has unsaved changes. Save before closing?",
             QMessageBox.StandardButton.Save
             | QMessageBox.StandardButton.Discard

@@ -42,6 +42,7 @@ _ES: dict[str, str] = {
     "Theme": "Tema",
     "Autosave": "Guardado automático",
     "Autosaved: {path}": "Guardado automático: {path}",
+    "Disclosure": "Declaración",
     # --- File menu ---
     "New": "Nuevo",
     "Open...": "Abrir...",
@@ -66,6 +67,8 @@ _ES: dict[str, str] = {
     "Insert Equation": "Insertar ecuación",
     "Insert Citation": "Insertar cita",
     "Insert Code Block": "Insertar bloque de código",
+    "Design block…": "Bloque de diseño…",
+    "Add Journal...": "Agregar revista...",
     # --- Export menu ---
     "Export DOCX...": "Exportar DOCX...",
     "Export LaTeX...": "Exportar LaTeX...",
@@ -73,6 +76,7 @@ _ES: dict[str, str] = {
     "Export HTML...": "Exportar HTML...",
     # --- View menu ---
     "Page View": "Vista de página",
+    "Browse themes…": "Explorar temas…",
     # --- Help menu ---
     "User Manual (English)": "Manual de usuario (Inglés)",
     "User Manual (Spanish)": "Manual de usuario (Español)",
@@ -89,14 +93,31 @@ _ES: dict[str, str] = {
     "INFO": "INFO",
     # --- Dialog labels ---
     "About epy_papers": "Acerca de epy_papers",
+    "Design block": "Bloque de diseño",
+    "Choose a design block:": "Elija un bloque de diseño:",
+    "Themes": "Temas",
+    "Choose a theme:": "Elija un tema:",
     "Close": "Cerrar",
     "OK": "Aceptar",
     "Cancel": "Cancelar",
     # --- About dialog ---
     "Paper authoring editor with live preview":
         "Editor de artículos científicos con vista previa en vivo",
+    # --- editor placeholder ---
+    "Type paper Markdown here. Preview updates on the right.": (
+        "Escriba aquí el Markdown del artículo. "
+        "La vista previa se actualiza a la derecha."
+    ),
     # --- status messages ---
     "Exported: {name}": "Exportado: {name}",
+    "An export is already running.": "Ya hay una exportación en curso.",
+    # --- message boxes ---
+    "Install LaTeX for PDF export": "Instalar LaTeX para exportar a PDF",
+    "Unsaved changes": "Cambios sin guardar",
+    "TinyTeX install failed": "Error al instalar TinyTeX",
+    "Export HTML failed": "Error al exportar HTML",
+    "Discard unsaved changes and reload from disk?":
+        "¿Descartar los cambios sin guardar y recargar desde el disco?",
 }
 
 
