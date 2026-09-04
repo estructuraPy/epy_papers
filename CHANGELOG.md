@@ -4,6 +4,45 @@ All notable changes to `epy_papers` are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] — 2026-09-04
+
+### Added
+- **An autosave the user can turn on or off.** A checkable *Autosave*
+  action in the View menu, off on a fresh install and remembered between
+  sessions. It writes only the current paper, only when it has a path
+  and unsaved changes, and never while an export is running; a paper
+  that has never been saved is skipped rather than raising a Save As
+  dialog on somebody mid-sentence. Validation is not re-run on an
+  autosave: that is what a person asks for on an explicit save.
+- **Saves are atomic.** Every save, manual or automatic, writes a
+  complete sibling file and renames it into place
+  (`epy_export.write_text_atomic`), so a save that dies mid-write cannot
+  truncate the only copy.
+
+### Fixed
+- **A PDF export froze the window for the whole LaTeX compile.**
+  `Paper.to_draft` ran on the GUI thread: seconds on a note, minutes on
+  a paper with figures, and for all of it the window stopped repainting,
+  so the application looked hung and Windows offered to close it. The
+  compile now runs on a worker thread behind the busy dialog the TinyTeX
+  download already used. A second export while one is running is
+  refused instead of writing the same file twice, and the retry after
+  installing LaTeX happens exactly once.
+- **An HTML export that failed said nothing in the status bar**, so a
+  reader who dismissed the dialog had no trace left of what happened.
+- **Fifteen interface strings were English in the Spanish UI** — the
+  View menu, the LaTeX install offer and its failure, the reload and
+  unsaved-changes prompts, the HTML export failure, the design block and
+  theme dialogs, and the editor's placeholder. This dictionary had 58
+  entries where epy_slides has 313.
+
+### Changed
+- The settings scope now takes its organisation name from
+  `epy_export.ORGANIZATION`. It was spelled two ways across the family,
+  which on Windows is two registry trees: ePy Studio read one and this
+  editor wrote the other, so the language a reader chose here was never
+  found by the launcher.
+
 ## [0.3.1] — 2026-08-06
 
 ### Fixed
