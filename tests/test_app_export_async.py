@@ -46,7 +46,17 @@ class _ScratchSettings:
 @pytest.fixture(scope="module")
 def qapp() -> QApplication:
     """Provide a module-scoped QApplication instance."""
-    return QApplication.instance() or QApplication([])
+    app: QApplication
+    instance = QApplication.instance()
+    if isinstance(instance, QApplication):
+        app = instance
+    elif instance is None:
+        app = QApplication([])
+    else:
+        raise RuntimeError(
+            "export tests need a QApplication, not a QCoreApplication."
+        )
+    return app
 
 
 @pytest.fixture
@@ -60,8 +70,9 @@ def window(
     )
     win = app_module.PaperWindow()
     yield win
-    win._confirm_close = lambda _tab: True
-    win.close()
+    _any_win: Any = win
+    _any_win._confirm_close = lambda _tab: True
+    _any_win.close()
 
 
 @pytest.fixture
@@ -100,8 +111,9 @@ class _RecordingPaper:
     def to_draft(self, *_args: Any, **_kwargs: Any) -> None:
         type(self).threads.append(threading.get_ident())
         type(self).calls += 1
-        if type(self).raises is not None:
-            raise type(self).raises
+        error = type(self).raises
+        if error is not None:
+            raise error
 
 
 @pytest.fixture

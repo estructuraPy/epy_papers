@@ -305,14 +305,23 @@ def unregister() -> list[str]:
             with winreg.OpenKey(
                 root, ext_root, 0, winreg.KEY_READ
             ) as k:
-                value, _ = winreg.QueryValueEx(k, None)
+                # None names the default value; winreg's stubs type the
+                # ``name`` parameter as ``str``, so this is a stub gap.
+                value, _ = winreg.QueryValueEx(
+                    k,
+                    None,  # pyright: ignore[reportArgumentType]
+                )
         except (FileNotFoundError, OSError):
             value = None
         if value == PROGID:
             with winreg.OpenKey(
                 root, ext_root, 0, winreg.KEY_SET_VALUE
             ) as k:
-                winreg.DeleteValue(k, None)
+                # Deleting the default uses the same None-as-name API.
+                winreg.DeleteValue(
+                    k,
+                    None,  # pyright: ignore[reportArgumentType]
+                )
             changes.append(f"Cleared legacy default for {ext}")
 
     return changes

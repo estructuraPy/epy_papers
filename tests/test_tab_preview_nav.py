@@ -19,12 +19,22 @@ _app: QApplication | None = None
 
 
 @pytest.fixture(scope="module")
-def qapp():
+def qapp() -> QApplication:
     """Provide a module-scoped QApplication instance."""
     global _app
-    if _app is None:
-        _app = QApplication.instance() or QApplication([])
-    return _app
+    if _app is not None:
+        return _app
+    instance = QApplication.instance()
+    if isinstance(instance, QApplication):
+        app = instance
+    elif instance is None:
+        app = QApplication([])
+    else:
+        raise RuntimeError(
+            "Preview tests need a QApplication, not a QCoreApplication."
+        )
+    _app = app
+    return app
 
 
 def test_anchor_nav_script_contract():
@@ -47,6 +57,7 @@ def test_popup_links_open_in_system_browser(qapp, monkeypatch):
     """target=_blank navigation is handed to the OS browser."""
     from PySide6.QtCore import QUrl
     from PySide6.QtGui import QDesktopServices
+    from PySide6.QtWebEngineCore import QWebEnginePage
 
     opened: list[str] = []
     monkeypatch.setattr(
@@ -54,7 +65,9 @@ def test_popup_links_open_in_system_browser(qapp, monkeypatch):
     )
     page = tab_mod._ExternalOpenPage(None)
     accepted = page.acceptNavigationRequest(
-        QUrl("https://example.test/paper"), None, True
+        QUrl("https://example.test/paper"),
+        QWebEnginePage.NavigationType.NavigationTypeLinkClicked,
+        True,
     )
     assert accepted is False
     assert opened == ["https://example.test/paper"]
@@ -62,8 +75,10 @@ def test_popup_links_open_in_system_browser(qapp, monkeypatch):
 
 def test_preview_view_creates_external_page(qapp):
     """createWindow returns the throwaway external-open page."""
+    from PySide6.QtWebEngineCore import QWebEnginePage
+
     view = tab_mod._PreviewView()
-    page = view.createWindow(None)
+    page = view.createWindow(QWebEnginePage.WebWindowType.WebBrowserTab)
     assert isinstance(page, tab_mod._ExternalOpenPage)
     view.deleteLater()
 

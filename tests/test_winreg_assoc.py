@@ -125,7 +125,12 @@ def test_register_then_unregister_round_trip():
             winreg.HKEY_CURRENT_USER,
             f"Software\\Classes\\{wa.PROGID}\\shell\\open\\command",
         ) as key:
-            cmd, _ = winreg.QueryValueEx(key, None)
+            # winreg's stubs type ``name`` as str, but None addresses the
+            # key's default value at runtime.
+            cmd, _ = winreg.QueryValueEx(
+                key,
+                None,  # pyright: ignore[reportArgumentType]
+            )
         assert "%1" in cmd
     finally:
         removed = wa.unregister()

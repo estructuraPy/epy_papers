@@ -22,6 +22,7 @@ Usage::
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any
 
 from docx import Document
 from docx.enum.text import WD_LINE_SPACING
@@ -86,7 +87,9 @@ def build(line_numbered: bool = False) -> Path:
         setattr(section, attr, Inches(1))
 
     # Normal style: Times New Roman 12 pt, double spaced.
-    normal = doc.styles["Normal"]
+    # python-docx's stubs omit BaseStyle.font/.paragraph_format, but both
+    # exist at runtime; route style objects through Any at this stub gap.
+    normal: Any = doc.styles["Normal"]
     normal.font.name = BODY_FONT
     normal.font.size = BODY_SIZE
     _set_double_spacing(normal.paragraph_format)
@@ -94,7 +97,7 @@ def build(line_numbered: bool = False) -> Path:
     # Headings inherit the body font; keep them readable and serif.
     for name in ("Title", "Heading 1", "Heading 2", "Heading 3", "Heading 4"):
         try:
-            style = doc.styles[name]
+            style: Any = doc.styles[name]
         except KeyError:
             continue
         style.font.name = BODY_FONT

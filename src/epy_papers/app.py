@@ -1570,7 +1570,17 @@ def main(argv: list[str] | None = None) -> int:
     if args.set_default:
         return _run_set_default()
 
-    app = QApplication.instance() or QApplication(sys.argv)
+    app: QApplication
+    instance = QApplication.instance()
+    if isinstance(instance, QApplication):
+        app = instance
+    elif instance is None:
+        app = QApplication(sys.argv)
+    else:
+        raise SystemExit(
+            "The epy_papers GUI needs a QApplication; a bare "
+            "QCoreApplication cannot own a QMainWindow."
+        )
     logo_pix = _load_branding_pixmap("epy_papers.png")
     if not logo_pix.isNull():
         app.setWindowIcon(QIcon(logo_pix))

@@ -41,7 +41,12 @@ def _letterbox(src: Image.Image, size: int) -> Image.Image:
     """
     canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     thumb = src.copy()
-    thumb.thumbnail((size, size), Image.LANCZOS)
+    # Pillow's stubs omit the Image.LANCZOS compatibility alias; it exists
+    # at runtime (Image.Resampling.LANCZOS is the current spelling).
+    thumb.thumbnail(
+        (size, size),
+        Image.LANCZOS,  # pyright: ignore[reportAttributeAccessIssue]
+    )
     x = (size - thumb.width) // 2
     y = (size - thumb.height) // 2
     canvas.paste(thumb, (x, y), mask=thumb if thumb.mode == "RGBA" else None)

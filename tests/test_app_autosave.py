@@ -48,7 +48,17 @@ class _NoEngine:
 @pytest.fixture(scope="module")
 def qapp() -> QApplication:
     """Provide a module-scoped QApplication instance."""
-    return QApplication.instance() or QApplication([])
+    app: QApplication
+    instance = QApplication.instance()
+    if isinstance(instance, QApplication):
+        app = instance
+    elif instance is None:
+        app = QApplication([])
+    else:
+        raise RuntimeError(
+            "autosave tests need a QApplication, not a QCoreApplication."
+        )
+    return app
 
 
 @pytest.fixture
@@ -76,8 +86,9 @@ def make_window(
 
     yield _make
     for win in windows:
-        win._confirm_close = lambda _tab: True
-        win.close()
+        _any_win: Any = win
+        _any_win._confirm_close = lambda _tab: True
+        _any_win.close()
 
 
 def _open(win: app_module.PaperWindow, path: Path) -> Any:

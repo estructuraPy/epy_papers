@@ -152,7 +152,17 @@ def capture_language(app: QApplication, win: PaperWindow, suffix: str) -> None:
 
 def main() -> int:
     """Boot the app offscreen and capture every manual screenshot."""
-    app = QApplication.instance() or QApplication(sys.argv)
+    app: QApplication
+    instance = QApplication.instance()
+    if isinstance(instance, QApplication):
+        app = instance
+    elif instance is None:
+        app = QApplication(sys.argv)
+    else:
+        raise SystemExit(
+            "capture_screenshots needs a QApplication; a bare "
+            "QCoreApplication cannot style or own the widgets."
+        )
     theme = themes.get("corporate")
     themes.apply_palette(app, theme)
     app.setStyleSheet(themes.qss_for(theme))

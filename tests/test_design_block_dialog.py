@@ -61,5 +61,7 @@ def test_cancel_button_rejects_the_dialog(qapp):
 
     dlg = DesignBlockDialog()
     buttons = dlg.findChild(QDialogButtonBox)
+    if buttons is None:
+        pytest.fail("DesignBlockDialog has no QDialogButtonBox")
     buttons.rejected.emit()
     assert dlg.result() == QDialog.DialogCode.Rejected
