@@ -52,7 +52,7 @@ from ._core._validation import (  # noqa: E402
 )
 from ._core.renderer import PandocMissingError, Renderer  # noqa: E402
 
-__version__ = "0.4.0"
+__version__ = "0.4.1"
 
 __all__ = [
     "Paper",

@@ -4,6 +4,19 @@ All notable changes to `epy_papers` are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] — 2026-09-05
+
+### Fixed
+- The journal editor was wrapped for translation but had no Spanish
+  entries, so all sixteen of its labels read English whatever language
+  the reader chose.
+- Interpolated status messages could never be translated, because an
+  f-string is assembled before `tr()` ever sees it. They carry named
+  fields now, and a gate keeps the next one from slipping in.
+
+### Changed
+- The typechecker runs in CI and this tree answers it with zero.
+
 ## [0.4.0] — 2026-09-04
 
 ### Added
