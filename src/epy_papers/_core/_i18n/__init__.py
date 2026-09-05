@@ -40,6 +40,25 @@ _ES: dict[str, str] = {
     "Language": "Idioma",
     # --- submenu titles ---
     "Theme": "Tema",
+    "Disclosure: {label}": "Declaración: {label}",
+    # --- the journal editor ---
+    "Abstract max words": "Máximo de palabras del resumen",
+    "Add Journal": "Agregar revista",
+    "Add a new journal": "Agregar una revista nueva",
+    "Citation style": "Estilo de cita",
+    "Columns": "Columnas",
+    "Export formats": "Formatos de exportación",
+    "Font": "Tipografía",
+    "Font size (pt)": "Tamaño de letra (pt)",
+    "Journal ID": "Identificador de la revista",
+    "Journal ID and Name are required.":
+        "El identificador y el nombre de la revista son obligatorios.",
+    "Line numbers": "Números de línea",
+    "Line spacing": "Interlineado",
+    "Name": "Nombre",
+    "Number lines (continuous)": "Numerar líneas (continuo)",
+    "Page size": "Tamaño de página",
+    "Publisher": "Editorial",
     "Autosave": "Guardado automático",
     "Autosaved: {path}": "Guardado automático: {path}",
     "Disclosure": "Declaración",
@@ -87,6 +106,8 @@ _ES: dict[str, str] = {
     # --- Validation dock ---
     "Validation": "Validación",
     "No issues found": "No se encontraron problemas",
+    "Validation error: {message}": "Error de validación: {message}",
+    "[{severity}] {message}": "[{severity}] {message}",
     # --- Severity labels ---
     "ERROR": "ERROR",
     "WARNING": "ADVERTENCIA",
@@ -110,14 +131,48 @@ _ES: dict[str, str] = {
     ),
     # --- status messages ---
     "Exported: {name}": "Exportado: {name}",
+    "Export failed: {name}": "Error al exportar: {name}",
+    "Exporting {format}": "Exportando {format}",
+    "Writing {name}…": "Escribiendo {name}…",
+    "Saved: {path}": "Guardado: {path}",
+    "Reloaded: {path}": "Recargado: {path}",
+    "Journal added: {name}": "Revista agregada: {name}",
     "An export is already running.": "Ya hay una exportación en curso.",
     # --- message boxes ---
     "Install LaTeX for PDF export": "Instalar LaTeX para exportar a PDF",
+    "Installing LaTeX": "Instalando LaTeX",
+    "Downloading and installing TinyTeX…": (
+        "Descargando e instalando TinyTeX…"
+    ),
     "Unsaved changes": "Cambios sin guardar",
     "TinyTeX install failed": "Error al instalar TinyTeX",
     "Export HTML failed": "Error al exportar HTML",
+    "Export {format} failed": "Error al exportar {format}",
+    "Not a file:\n{path}": "No es un archivo:\n{path}",
+    "Could not load manual '{filename}'.": (
+        "No se pudo cargar el manual '{filename}'."
+    ),
+    "'{name}' has unsaved changes. Save before closing?": (
+        "'{name}' tiene cambios sin guardar. "
+        "¿Guardar antes de cerrar?"
+    ),
     "Discard unsaved changes and reload from disk?":
         "¿Descartar los cambios sin guardar y recargar desde el disco?",
+    (
+        "PDF export needs a LaTeX engine, which is not installed.\n\n"
+        "epy_papers can download and install a private TinyTeX "
+        "(~{download_mb} MB) now — a one-time download reused on later "
+        "exports. Word, LaTeX and HTML export never need it.\n\n"
+        "Download and install TinyTeX now?"
+    ): (
+        "La exportación a PDF necesita un motor LaTeX, "
+        "que no está instalado.\n\n"
+        "epy_papers puede descargar e instalar un TinyTeX privado "
+        "(~{download_mb} MB) ahora, una descarga única que se reutiliza "
+        "en exportaciones posteriores. La exportación a Word, LaTeX y "
+        "HTML no lo necesita.\n\n"
+        "¿Descargar e instalar TinyTeX ahora?"
+    ),
 }
 
 

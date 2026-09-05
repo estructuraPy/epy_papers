@@ -325,7 +325,12 @@ class PaperWindow(QMainWindow):
         )
         self.disclosure_actions: list[QAction] = []
         for d_kind, (d_label, _d_text) in DISCLOSURE_PRESETS.items():
-            d_act = QAction(f"Disclosure: {d_label}", self)
+            d_act = QAction(
+                i18n.tr("Disclosure: {label}").format(
+                    label=d_label
+                ),
+                self,
+            )
             d_act.triggered.connect(
                 lambda checked=False, k=d_kind: self._on_active_tab(
                     "insert_disclosure", k
@@ -730,7 +735,7 @@ class PaperWindow(QMainWindow):
             return
         self._refresh_journal_combo(select_id=jid)
         self.statusBar().showMessage(
-            i18n.tr("Journal added") + f": {name}", 4000
+            i18n.tr("Journal added: {name}").format(name=name), 4000
         )
 
     # ------------------------------------------ validation dock
@@ -790,13 +795,19 @@ class PaperWindow(QMainWindow):
                 for w in warnings:
                     sev = str(w.severity).upper()
                     color = sev_colors.get(sev, "#333333")
-                    item = QListWidgetItem(
-                        f"[{sev}] {w.message}"
+                    severity = i18n.tr(sev)
+                    detail = i18n.tr("[{severity}] {message}").format(
+                        severity=severity, message=w.message
                     )
+                    item = QListWidgetItem(detail)
                     item.setForeground(QColor(color))
                     lw.addItem(item)
         except Exception as exc:
-            item = QListWidgetItem(f"Validation error: {exc}")
+            item = QListWidgetItem(
+                i18n.tr("Validation error: {message}").format(
+                    message=str(exc)
+                )
+            )
             item.setForeground(QColor("#cc0000"))
             lw.addItem(item)
 
@@ -1000,7 +1011,7 @@ class PaperWindow(QMainWindow):
             html = _build_preview_html(tab.text(), self._current_profile())
             target.write_text(html, encoding="utf-8")
             self.statusBar().showMessage(
-                f"Exported: {target.name}", 5000
+                i18n.tr("Exported: {name}").format(name=target.name), 5000
             )
         except Exception as exc:
             QMessageBox.critical(
@@ -1090,8 +1101,8 @@ class PaperWindow(QMainWindow):
         def _write() -> None:
             Paper(text, base_dir).to_draft(journal_id, target, fmt=fmt)
 
-        title = f"Exporting {fmt.upper()}"
-        label = f"Writing {target.name}…"
+        title = i18n.tr("Exporting {format}").format(format=fmt.upper())
+        label = i18n.tr("Writing {name}…").format(name=target.name)
         # Raised for the whole export, INCLUDING the TinyTeX offer and
         # both progress dialogs: each runs a nested event loop in which
         # the autosave timer can fire while the paper is being written.
@@ -1105,13 +1116,22 @@ class PaperWindow(QMainWindow):
                 error = self._run_off_thread(title, label, _write)
             if error is not None:
                 QMessageBox.critical(
-                    self, f"Export {fmt.upper()} failed", str(error)
+                    self,
+                    i18n.tr("Export {format} failed").format(
+                        format=fmt.upper()
+                    ),
+                    str(error),
                 )
                 self.statusBar().showMessage(
-                    f"Export failed: {target.name}", 5000
+                    i18n.tr("Export failed: {name}").format(
+                        name=target.name
+                    ),
+                    5000,
                 )
                 return
-            self.statusBar().showMessage(f"Exported: {target.name}", 5000)
+            self.statusBar().showMessage(
+                i18n.tr("Exported: {name}").format(name=target.name), 5000
+            )
         finally:
             self._exports_in_flight -= 1
 
@@ -1127,11 +1147,13 @@ class PaperWindow(QMainWindow):
         answer = QMessageBox.question(
             self,
             i18n.tr("Install LaTeX for PDF export"),
-            "PDF export needs a LaTeX engine, which is not installed.\n\n"
-            f"epy_papers can download and install a private TinyTeX "
-            f"(~{DOWNLOAD_MB} MB) now — a one-time download reused on later "
-            "exports. Word, LaTeX and HTML export never need it.\n\n"
-            "Download and install TinyTeX now?",
+            i18n.tr(
+                "PDF export needs a LaTeX engine, which is not installed."
+                "\n\nepy_papers can download and install a private TinyTeX "
+                "(~{download_mb} MB) now — a one-time download reused on "
+                "later exports. Word, LaTeX and HTML export never need it."
+                "\n\nDownload and install TinyTeX now?"
+            ).format(download_mb=DOWNLOAD_MB),
             QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
             QMessageBox.StandardButton.No,
         )
@@ -1146,8 +1168,8 @@ class PaperWindow(QMainWindow):
             install_tinytex()
 
         error = self._run_off_thread(
-            "Installing LaTeX",
-            "Downloading and installing TinyTeX…",
+            i18n.tr("Installing LaTeX"),
+            i18n.tr("Downloading and installing TinyTeX…"),
             _install,
         )
         if error is not None:
@@ -1175,7 +1197,9 @@ class PaperWindow(QMainWindow):
             QMessageBox.warning(
                 self,
                 APP_NAME,
-                f"Could not load manual '{filename}'.",
+                i18n.tr("Could not load manual '{filename}'.").format(
+                    filename=filename
+                ),
             )
             return
         tab = self._create_tab()
@@ -1265,7 +1289,9 @@ class PaperWindow(QMainWindow):
         """Open ``path`` in a new tab, or focus the existing tab."""
         if not path.is_file():
             QMessageBox.warning(
-                self, APP_NAME, f"Not a file:\n{path}"
+                self,
+                APP_NAME,
+                i18n.tr("Not a file:\n{path}").format(path=path),
             )
             return
         path = path.resolve()
@@ -1301,7 +1327,9 @@ class PaperWindow(QMainWindow):
             return self._save_current_as()
         tab.save()
         self._refresh_tab_title(tab)
-        self.statusBar().showMessage(f"Saved: {tab.path}", 3000)
+        self.statusBar().showMessage(
+            i18n.tr("Saved: {path}").format(path=str(tab.path)), 3000
+        )
         self._run_validation()
         return True
 
@@ -1355,7 +1383,9 @@ class PaperWindow(QMainWindow):
             target = target.with_suffix(".md")
         tab.save_as(target)
         self._refresh_tab_title(tab)
-        self.statusBar().showMessage(f"Saved: {target}", 3000)
+        self.statusBar().showMessage(
+            i18n.tr("Saved: {path}").format(path=str(target)), 3000
+        )
         self._run_validation()
         return True
 
@@ -1367,7 +1397,7 @@ class PaperWindow(QMainWindow):
         if tab.dirty:
             choice = QMessageBox.question(
                 self,
-                "Reload",
+                i18n.tr("Reload"),
                 i18n.tr("Discard unsaved changes and reload from disk?"),
                 QMessageBox.StandardButton.Yes
                 | QMessageBox.StandardButton.No,
@@ -1376,7 +1406,9 @@ class PaperWindow(QMainWindow):
             if choice != QMessageBox.StandardButton.Yes:
                 return
         tab.reload()
-        self.statusBar().showMessage(f"Reloaded: {tab.path}", 2000)
+        self.statusBar().showMessage(
+            i18n.tr("Reloaded: {path}").format(path=str(tab.path)), 2000
+        )
         self._run_validation()
 
     # ------------------------------------------ closing logic
@@ -1393,7 +1425,9 @@ class PaperWindow(QMainWindow):
         choice = QMessageBox.question(
             self,
             i18n.tr("Unsaved changes"),
-            f"'{name}' has unsaved changes. Save before closing?",
+            i18n.tr(
+                "'{name}' has unsaved changes. Save before closing?"
+            ).format(name=name),
             QMessageBox.StandardButton.Save
             | QMessageBox.StandardButton.Discard
             | QMessageBox.StandardButton.Cancel,
