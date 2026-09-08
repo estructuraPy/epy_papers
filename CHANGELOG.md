@@ -4,6 +4,41 @@ All notable changes to `epy_papers` are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **A second rendering option: ePy Docs.** *Export - Export via
+  epy_docs...* hands the manuscript to the generic writer and gets a
+  PDF, a Word file or an HTML document back, with the corporate cover
+  and the legal note. It sits after a separator because it is not a
+  substitute for what this editor does: ePy Papers builds a manuscript
+  in a NAMED JOURNAL's shape, its class file, its citation style, its
+  geometry. Neither replaces the other, which is why both are offered.
+
+  No journal profile travels with it. That option is read by ePy Papers
+  alone, and the dispatcher refuses an option meant for another engine
+  BY NAME rather than dropping it -- so asking the generic writer for a
+  journal's shape would say so instead of quietly returning the house
+  document.
+
+  The entry is offered only where the engine can be reached, and
+  reachability is asked of `epy_export`, which answers about the
+  MACHINE. Asking whether the engine imports in THIS process is the
+  question with a permanently wrong answer inside a frozen bundle.
+
+  The window itself is the family's, so it is the same dialog in all
+  three editors, remembered under this application's own registry
+  scope. Eleven Spanish strings come with it, including the dialog's
+  own labels, which this package had none of.
+
+### Fixed
+
+- The `epy_suite_connect` docstring claimed the whole package imports
+  only the standard library. That is true of the module that says it
+  and not of the bridges beside it, and a claim that broad is one
+  somebody eventually trusts.
+
 ## [0.4.1] — 2026-09-05
 
 ### Fixed

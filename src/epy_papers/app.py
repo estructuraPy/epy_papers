@@ -46,6 +46,9 @@ from epy_papers._core import _i18n as i18n
 # whether the sibling apps are installed alongside it.
 from epy_papers._core import themes as _themes
 from epy_papers._ui.about_dialog import _load_branding_pixmap
+from epy_papers.epy_suite_connect._adapters.docs_bridge import (
+    epy_docs_available as docs_available,
+)
 
 APP_NAME = "epy_papers"
 
@@ -358,6 +361,19 @@ class PaperWindow(QMainWindow):
         self.act_export_html = QAction("Export HTML...", self)
         self.act_export_html.triggered.connect(self._export_html)
 
+        # The SECOND renderer. This editor's own engine builds a
+        # manuscript in a NAMED JOURNAL's shape; ePy Docs builds the
+        # house document instead. Neither substitutes for the other,
+        # which is why both are offered.
+        self.act_docs_export = QAction("Export via epy_docs...", self)
+        if docs_available():
+            self.act_docs_export.triggered.connect(self._export_via_docs)
+        else:
+            self.act_docs_export.setEnabled(False)
+            self.act_docs_export.setToolTip(
+                i18n.tr("Requires the epy-docs package")
+            )
+
         self.act_manual_en = QAction("User Manual (English)", self)
         self.act_manual_en.triggered.connect(
             lambda: self._open_manual("welcome.md")
@@ -450,6 +466,8 @@ class PaperWindow(QMainWindow):
         self.export_menu.addAction(self.act_export_latex)
         self.export_menu.addAction(self.act_export_pdf)
         self.export_menu.addAction(self.act_export_html)
+        self.export_menu.addSeparator()
+        self.export_menu.addAction(self.act_docs_export)
 
         self.view_menu = QMenu("&View", self)
         if _THEMES_AVAILABLE and _themes is not None:
@@ -1248,6 +1266,73 @@ class PaperWindow(QMainWindow):
             self.statusBar().showMessage(str(tab.path))
         else:
             self.statusBar().clearMessage()
+
+    def _export_via_docs(self) -> None:
+        """Open the ePy Docs export dialog and render off the thread."""
+        from epy_papers._ui.docs_export_dialog import (  # noqa: PLC0415
+            DocsExportDialog,
+            _RenderWorker,
+        )
+
+        tab = self._current_tab()
+        if tab is None:
+            return
+        # The engine reads a FILE, so an unsaved buffer has nothing to
+        # give it. Asked rather than assumed: saving somebody's
+        # manuscript because they opened an export dialog is not the
+        # export they asked for.
+        if tab.path is None or tab.dirty:
+            choice = QMessageBox.question(
+                self,
+                APP_NAME,
+                i18n.tr(
+                    "The manuscript must be saved before exporting via "
+                    "epy_docs. Save now?"
+                ),
+                QMessageBox.StandardButton.Save
+                | QMessageBox.StandardButton.Cancel,
+                QMessageBox.StandardButton.Save,
+            )
+            if choice != QMessageBox.StandardButton.Save:
+                return
+            if not self._save_current():
+                return
+        if tab.path is None:
+            return
+
+        dialog = DocsExportDialog(tab.path, parent=self)
+        if dialog.exec() != DocsExportDialog.DialogCode.Accepted:
+            return
+        dialog.persist_settings()
+
+        self.statusBar().showMessage(i18n.tr("Exporting via epy_docs..."), 0)
+        self._docs_worker = _RenderWorker(
+            source_path=tab.path,
+            layout=dialog.layout_name,
+            document_type=dialog.document_type,
+            output_dir=dialog.output_dir,
+            pdf=dialog.export_pdf,
+            html=dialog.export_html,
+            docx=dialog.export_docx,
+        )
+        self._docs_worker.finished_ok.connect(self._on_docs_done_ok)
+        self._docs_worker.finished_err.connect(self._on_docs_done_err)
+        self._docs_worker.start()
+
+    def _on_docs_done_ok(self, out_dir: str) -> None:
+        """Report where the documents were written."""
+        self.statusBar().showMessage(
+            i18n.tr("Exported to {path}").format(path=out_dir), 5000
+        )
+
+    def _on_docs_done_err(self, message: str) -> None:
+        """Show the engine's own diagnosis, which is the actionable one."""
+        self.statusBar().clearMessage()
+        QMessageBox.critical(
+            self,
+            APP_NAME,
+            i18n.tr("epy_docs export failed:") + "\n\n" + message,
+        )
 
     def _current_tab(self):
         """Return the currently visible PaperTab, if any."""

@@ -93,6 +93,22 @@ _ES: dict[str, str] = {
     "Export LaTeX...": "Exportar LaTeX...",
     "Export PDF...": "Exportar PDF...",
     "Export HTML...": "Exportar HTML...",
+    # --- the second renderer: ePy Docs ---
+    "Export via epy_docs...": "Exportar con epy_docs...",
+    "Export via epy_docs": "Exportar con epy_docs",
+    "Requires the epy-docs package": "Requiere el paquete epy-docs",
+    "The manuscript must be saved before exporting via epy_docs. Save now?":
+        "El manuscrito debe guardarse antes de exportar con epy_docs. "
+        "\u00bfGuardar ahora?",
+    "Exporting via epy_docs...": "Exportando con epy_docs...",
+    "Exported to {path}": "Exportado a {path}",
+    "epy_docs export failed:": "Error al exportar con epy_docs:",
+    # --- its dialog ---
+    "Layout:": "Dise\u00f1o:",
+    "Document type:": "Tipo de documento:",
+    "Output directory:": "Directorio de salida:",
+    "Output formats:": "Formatos de salida:",
+    "Select output directory": "Seleccione el directorio de salida",
     # --- View menu ---
     "Page View": "Vista de página",
     "Browse themes…": "Explorar temas…",
