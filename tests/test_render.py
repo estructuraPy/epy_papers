@@ -99,3 +99,49 @@ def test_a4_geometry_for_a4_profile(tmp_path):
         "eng-structures", tmp_path / "a4.tex", fmt="tex"
     )
     assert "a4paper" in out.read_text(encoding="utf-8")
+
+
+# ---------------------------------------------------------------------------
+# to_docx: reference-DOCX resolution fallbacks
+#
+# Both submission.docx and submission_lineno.docx are genuinely bundled
+# (verified on disk), so these branches never fire on a real export --
+# only a broken/partial install would hit them. Exercised directly by
+# patching Renderer._asset rather than deleting real bundled assets.
+# ---------------------------------------------------------------------------
+
+
+def test_to_docx_falls_back_to_the_plain_reference_when_lineno_missing(
+    tmp_path, monkeypatch
+):
+    from epy_papers._core._authoring import Manuscript
+
+    real_asset = Renderer._asset
+
+    def _fake_asset(self, package, filename):
+        if filename == "submission_lineno.docx":
+            return None
+        return real_asset(self, package, filename)
+
+    monkeypatch.setattr(Renderer, "_asset", _fake_asset)
+    r = Renderer(
+        Manuscript.from_source(SIMPLE),
+        {"line_numbers": "continuous"},
+    )
+    out = r.to_docx(tmp_path / "draft.docx")
+    assert out.exists() and out.stat().st_size > 0
+    assert any(
+        "Line-numbered reference DOCX not bundled" in n for n in r.notes
+    )
+
+
+def test_to_docx_uses_pandoc_defaults_when_no_reference_is_bundled(
+    tmp_path, monkeypatch
+):
+    from epy_papers._core._authoring import Manuscript
+
+    monkeypatch.setattr(Renderer, "_asset", lambda self, pkg, fn: None)
+    r = Renderer(Manuscript.from_source(SIMPLE), {})
+    out = r.to_docx(tmp_path / "draft.docx")
+    assert out.exists() and out.stat().st_size > 0
+    assert any("Reference DOCX not bundled" in n for n in r.notes)

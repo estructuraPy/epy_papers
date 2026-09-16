@@ -1047,7 +1047,14 @@ class PaperTab(QWidget):
     def _next_label_suffix(self, kind: str) -> str:
         """Return the next sequential integer suffix for ``kind`` labels."""
         text = self.editor.toPlainText()
-        pattern = rf"\{{#(?:{kind})-(\d+)\}}"
+        # `[^}]*` because a label may carry ATTRIBUTES after its number.
+        # insert_figure writes `{#fig-N width=80%}`, and a pattern demanding
+        # `}` immediately after the digits matched none of them -- so the scan
+        # found no figures, and every figure inserted came back labelled
+        # fig-1. Duplicate labels break every cross-reference to a figure in
+        # the rendered document. insert_table and insert_equation were
+        # unaffected only because their labels carry no attributes.
+        pattern = rf"\{{#(?:{kind})-(\d+)[^}}]*\}}"
         nums = [int(m) for m in re.findall(pattern, text)]
         return str(max(nums) + 1) if nums else "1"
 

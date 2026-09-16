@@ -115,3 +115,62 @@ def test_manuscript_scalar_source():
     assert ms.title.get("en") == "A single-language title"
     assert ms.keywords.get("en") == ["one", "two", "three"]
     assert ms.authors == []
+
+
+def test_split_front_matter_no_closing_fence_returns_whole_source():
+    """An opening ``---`` with no closing fence is not front matter at
+    all -- the whole thing is treated as body, not silently truncated.
+    """
+    source = "---\ntitle: Unterminated\n\n# Body still here\n"
+    fm, body = split_front_matter(source)
+    assert fm == ""
+    assert body == source
+
+
+def test_bilingual_coerce_is_idempotent_on_an_existing_instance():
+    original = Bilingual.coerce({"en": "hi"})
+    assert Bilingual.coerce(original) is original
+
+
+def test_bilingual_primary_is_empty_string_with_no_content_anywhere():
+    assert Bilingual.coerce(None).primary("en") == ""
+    assert Bilingual({"en": "", "es": "  "}).primary("en") == ""
+
+
+def test_bilingual_list_coerce_is_idempotent_on_an_existing_instance():
+    original = BilingualList.coerce(["a", "b"])
+    assert BilingualList.coerce(original) is original
+
+
+def test_bilingual_list_has_and_primary_fall_back_across_languages():
+    kl = BilingualList({"es": ["uno", "dos"]})
+    assert kl.has("es") is True
+    assert kl.has("en") is False
+    assert kl.primary("en") == ["uno", "dos"]  # falls back to es
+
+
+def test_bilingual_list_primary_is_empty_with_nothing_in_any_language():
+    kl = BilingualList({"en": [], "es": []})
+    assert kl.primary("en") == []
+
+
+def test_author_coerce_falls_back_to_str_for_an_unexpected_type():
+    """Neither a string nor a mapping (e.g. a bare int from malformed
+    YAML): the author is still recorded, not dropped or crashed on.
+    """
+    author = Author.coerce(12345)
+    assert author.name == "12345"
+    assert author.affiliation == ""
+    assert author.corresponding is False
+
+
+def test_manuscript_from_file_reads_and_parses_a_real_file(tmp_path):
+    """``Paper.from_file`` never calls this (it reads the text itself and
+    goes through ``from_source``), so this is the only caller of
+    ``Manuscript.from_file`` in the whole codebase.
+    """
+    path = tmp_path / "paper.md"
+    path.write_text(SCALAR_SOURCE, encoding="utf-8")
+    ms = Manuscript.from_file(path)
+    assert ms.title.get("en") == "A single-language title"
+    assert ms.base_dir == tmp_path

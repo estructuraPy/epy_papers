@@ -128,3 +128,116 @@ def test_messages_backcompat():
     res = ep.Paper(src).validate("eng-structures")
     msgs = res.messages()
     assert all(isinstance(m, str) for m in msgs)
+
+
+def test_warning_str_is_bracketed_severity_plus_message():
+    from epy_papers._core._validation import Severity, Warning
+
+    w = Warning(code="x", severity=Severity.ERROR, message="Bad thing.")
+    assert str(w) == "[error] Bad thing."
+
+
+def test_result_bool_is_true_only_with_findings():
+    from epy_papers._core._validation import ValidationResult
+
+    empty = ValidationResult(journal_id="j", journal_name="J")
+    assert bool(empty) is False
+    empty.add("code", Severity.INFO, "msg")
+    assert bool(empty) is True
+
+
+def test_int_helper_falls_back_on_an_unparseable_value():
+    """A malformed profile field (string junk instead of a number) must
+    degrade to the default, not raise out of every validation call.
+    """
+    src = "---\ntitle: {en: T}\nabstract: {en: A}\nkeywords: {en: [k]}\n---\n#"
+    profile = ep.JournalProfile(
+        "junk-profile", {"name": "Junk Journal", "title_chars": "not-a-number"}
+    )
+    from epy_papers import Manuscript
+    from epy_papers._core._validation import validate
+
+    res = validate(Manuscript.from_source(src), profile, "junk-profile")
+    # No crash, and no spurious "too long" finding from a limit of 0.
+    assert "title-too-long" not in _codes(res)
+
+
+def test_keywords_too_few_is_an_info_finding():
+    from epy_papers import Manuscript
+    from epy_papers._core._validation import validate
+
+    src = (
+        "---\ntitle: {en: T}\nabstract: {en: A}\n"
+        "keywords: {en: [only-one]}\n---\n# B\n"
+    )
+    profile = ep.JournalProfile(
+        "kw-min-test",
+        {"name": "KW Journal", "keywords_min": 3, "keywords_max": 7},
+    )
+    res = validate(Manuscript.from_source(src), profile, "kw-min-test")
+    assert "keywords-too-few" in _codes(res)
+    for w in res:
+        if w.code == "keywords-too-few":
+            assert w.severity == Severity.INFO
+
+
+def test_highlights_count_out_of_range_when_some_are_present():
+    """One highlight against a 3-5 requirement is a COUNT finding, not
+    the (already-covered) MISSING one -- the two must not collapse.
+    """
+    src = (
+        "---\ntitle: {en: T}\nabstract: {en: A}\nkeywords: {en: [k]}\n"
+        "highlights: [Only one highlight here.]\n---\n# B"
+    )
+    res = ep.Paper(src).validate("eng-structures")  # wants 3-5
+    codes = _codes(res)
+    assert "highlights-count" in codes
+    assert "highlights-missing" not in codes
+
+
+def test_page_size_a4_forbidden_by_an_acs_journal():
+    from epy_papers import Manuscript
+    from epy_papers._core._validation import validate
+
+    src = "---\ntitle: {en: T}\nabstract: {en: A}\nkeywords: {en: [k]}\n---\n#"
+    profile = ep.JournalProfile(
+        "acs-a4-test", {"name": "ACS Fake Journal", "page_size": "a4"}
+    )
+    res = validate(Manuscript.from_source(src), profile, "acs-a4-test")
+    assert "page-size" in _codes(res)
+
+
+def test_page_size_a4_allowed_by_a_non_acs_journal():
+    """Counter-example: the same A4 page size is fine for a journal whose
+    name does not contain 'ACS'.
+    """
+    from epy_papers import Manuscript
+    from epy_papers._core._validation import validate
+
+    src = "---\ntitle: {en: T}\nabstract: {en: A}\nkeywords: {en: [k]}\n---\n#"
+    profile = ep.JournalProfile(
+        "other-a4-test", {"name": "Some Other Journal", "page_size": "a4"}
+    )
+    res = validate(Manuscript.from_source(src), profile, "other-a4-test")
+    assert "page-size" not in _codes(res)
+
+
+def test_citation_style_flagged_when_profile_has_no_csl():
+    from epy_papers import Manuscript
+    from epy_papers._core._validation import validate
+
+    src = "---\ntitle: {en: T}\nabstract: {en: A}\nkeywords: {en: [k]}\n---\n#"
+    profile = ep.JournalProfile("no-csl-test", {"name": "No CSL Journal"})
+    res = validate(Manuscript.from_source(src), profile, "no-csl-test")
+    assert "citation-style" in _codes(res)
+
+
+def test_citation_style_not_flagged_when_a_csl_is_declared():
+    """CONTROL: every real bundled journal declares a CSL (verified by
+    ``load_journals()`` having none without one), so this direction is
+    otherwise never exercised.
+    """
+    res = ep.Paper(
+        "---\ntitle: {en: T}\nabstract: {en: A}\nkeywords: {en: [k]}\n---\n#"
+    ).validate("eng-structures")
+    assert "citation-style" not in _codes(res)
