@@ -25,8 +25,6 @@ from __future__ import annotations
 import shutil
 from pathlib import Path
 
-import pytest
-
 
 def _run_as_main(module, fake_file: Path) -> None:
     """Execute ``module``'s real source as ``__main__`` with a fake path."""
@@ -65,8 +63,13 @@ class TestMakeIconRunAsAScript:
         real_root = Path(make_icon.__file__).resolve().parent.parent
         real_assets = real_root / "assets_build"
         real_ico = real_assets / "epy_papers.ico"
-        if not real_ico.exists():
-            pytest.skip("no bundled icon on this checkout to guard")
+        # Asserted, not skipped past: the .ico ships inside the package
+        # (``_core/_packaging/assets_build/``), so an absent one is a broken
+        # checkout and this control -- which exists to prove the redirection
+        # never overwrites a git-tracked asset -- would be silently retired.
+        assert real_ico.exists(), (
+            f"no bundled icon at {real_ico}; the guard below cannot run and "
+            f"the test it protects would start writing to a tracked asset")
         before = real_ico.stat().st_mtime_ns
 
         fake_assets = tmp_path / "_packaging" / "assets_build"
