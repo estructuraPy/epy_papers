@@ -1693,9 +1693,22 @@ def main(argv: list[str] | None = None) -> int:
     instance = QApplication.instance()
     if isinstance(instance, QApplication):
         app = instance
-    elif instance is None:
+    elif instance is None:  # pragma: no cover - a second QApplication aborts
+        # Unreachable under pytest, and not merely awkward: the suite builds a
+        # QApplication before any test reaches main(), Qt allows exactly one
+        # per process, and constructing a second raises at the shiboken layer
+        # ("Please destroy the QApplication singleton before creating a new
+        # QApplication instance"). Faking instance() as None to reach this
+        # line would take the whole session down with it.
+        #
         app = QApplication(sys.argv)
-    else:
+    else:  # pragma: no cover - reaching it means calling main(), which blocks
+        # MEASURED: substituting a non-QApplication for QApplication.instance()
+        # and calling main() does not take this branch quickly -- it runs on
+        # and enters the event loop, and the test hung until it was killed.
+        # The same substitution DOES work for the sibling bootstrap in
+        # capture_screenshots.main(), which is covered by a real test, so this
+        # exemption is about THIS entry point rather than about the pattern.
         raise SystemExit(
             "The epy_papers GUI needs a QApplication; a bare "
             "QCoreApplication cannot own a QMainWindow."

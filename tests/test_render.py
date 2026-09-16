@@ -5,6 +5,10 @@ Pandoc-dependent tests skip gracefully when Pandoc is absent.
 
 from __future__ import annotations
 
+import os
+
+import pytest
+
 import epy_papers as ep
 from epy_papers._core.renderer import Renderer
 
@@ -145,3 +149,36 @@ def test_to_docx_uses_pandoc_defaults_when_no_reference_is_bundled(
     out = r.to_docx(tmp_path / "draft.docx")
     assert out.exists() and out.stat().st_size > 0
     assert any("Reference DOCX not bundled" in n for n in r.notes)
+
+
+# ---------------------------------------------------------------------------
+# to_pdf: missing engine, and TEXINPUTS save/restore
+# ---------------------------------------------------------------------------
+
+
+def test_to_pdf_raises_latex_missing_error_when_no_engine_is_found(
+    tmp_path, monkeypatch
+):
+    from epy_papers._core import _latex
+    from epy_papers._core._authoring import Manuscript
+    from epy_papers._core._latex import LatexMissingError
+
+    monkeypatch.setattr(_latex, "find_engine", lambda: None)
+    r = Renderer(Manuscript.from_source(SIMPLE), {})
+    with pytest.raises(LatexMissingError):
+        r.to_pdf(tmp_path / "draft.pdf")
+
+
+def test_to_pdf_restores_a_previously_set_texinputs(tmp_path, monkeypatch):
+    """Counter-example to the "nothing was set before" path already
+    exercised by the real PDF export test: TEXINPUTS must come back to
+    exactly what it was, not be left cleared, when something else in the
+    process had already set it (e.g. a sibling epy_* tool in the same
+    session).
+    """
+    from epy_papers._core._authoring import Manuscript
+
+    monkeypatch.setenv("TEXINPUTS", "C:\\some\\prior\\path;")
+    r = Renderer(Manuscript.from_source(SIMPLE), {})
+    r.to_pdf(tmp_path / "draft.pdf")
+    assert os.environ["TEXINPUTS"] == "C:\\some\\prior\\path;"

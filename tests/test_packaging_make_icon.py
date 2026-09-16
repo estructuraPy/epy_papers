@@ -111,6 +111,31 @@ def test_generate_creates_the_output_directory_if_missing(
     assert (out_dir / "epy_papers.ico").exists()
 
 
+def test_module_raises_systemexit_when_pillow_is_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+):
+    """The module-level ``try: from PIL import Image`` guard.
+
+    Pillow is installed in this environment (verified: real imports
+    everywhere else in this file), so the only way to exercise the
+    "Pillow is missing" branch is to force the *next* import of this
+    module to fail -- blocking ``PIL`` in ``sys.modules`` (the standard
+    way to make an import raise ``ImportError`` without uninstalling the
+    real package) and dropping the already-imported ``make_icon`` module
+    so Python re-executes its top level.
+    """
+    import sys
+
+    monkeypatch.setitem(sys.modules, "PIL", None)
+    monkeypatch.delitem(
+        sys.modules,
+        "epy_papers._core._packaging.make_icon",
+        raising=False,
+    )
+    with pytest.raises(SystemExit, match="Pillow is required"):
+        import epy_papers._core._packaging.make_icon  # noqa: F401
+
+
 # ---------------------------------------------------------------------------
 # `if __name__ == "__main__":` guard -- NOT exercised (see report).
 #

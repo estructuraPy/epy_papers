@@ -149,6 +149,15 @@ def test_bilingual_list_has_and_primary_fall_back_across_languages():
     assert kl.primary("en") == ["uno", "dos"]  # falls back to es
 
 
+def test_bilingual_list_primary_uses_the_default_language_when_present():
+    """Counter-example to the fallback test above: when the default
+    language DOES have content, it is used directly, not the fallback
+    scan over ``LANGS``.
+    """
+    kl = BilingualList({"en": ["one", "two"], "es": ["uno"]})
+    assert kl.primary("en") == ["one", "two"]
+
+
 def test_bilingual_list_primary_is_empty_with_nothing_in_any_language():
     kl = BilingualList({"en": [], "es": []})
     assert kl.primary("en") == []

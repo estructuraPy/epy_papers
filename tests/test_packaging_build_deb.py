@@ -130,6 +130,14 @@ def test_verify_deb_rejects_a_bad_magic(tmp_path: Path):
         bd._verify_deb(path)
 
 
+def test_verify_deb_rejects_a_truncated_header(tmp_path: Path):
+    path = tmp_path / "truncated.deb"
+    # Valid magic, then a header cut short (< 60 bytes) with nothing after.
+    path.write_bytes(bd.AR_MAGIC + b"debian-binary   0" * 3)
+    with pytest.raises(ValueError, match="Truncated ar header"):
+        bd._verify_deb(path)
+
+
 # ---------------------------------------------------------------------------
 # tar helpers
 # ---------------------------------------------------------------------------
@@ -248,6 +256,27 @@ def test_build_data_tar_warns_and_continues_without_an_icon(
             "./usr/share/icons/hicolor/256x256/apps/epy_papers.png"
             not in names
         )
+
+
+def test_build_data_tar_excludes_stray_binary_extensions(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """The real pypandoc install on this machine has no bare ``.so``/
+    ``.bin`` files to trigger this guard (only the ``pandoc``-stem check
+    above ever fires for real) -- a fake pypandoc tree with one proves
+    the second, otherwise-dead-looking check is real and independent.
+    """
+    fake_pypandoc = tmp_path / "pypandoc"
+    fake_pypandoc.mkdir()
+    (fake_pypandoc / "__init__.py").write_text("", encoding="utf-8")
+    (fake_pypandoc / "helper.so").write_bytes(b"\x00")
+    monkeypatch.setattr(bd, "PYPANDOC_SRC", fake_pypandoc)
+
+    data = bd._build_data_tar(Path("/does/not/exist.png"))
+    with tarfile.open(fileobj=io.BytesIO(data), mode="r:gz") as tf:
+        names = tf.getnames()
+    assert not any(n.endswith("helper.so") for n in names)
+    assert any(n.endswith("__init__.py") for n in names)  # sibling ships
 
 
 def test_build_data_tar_excludes_pandoc_binaries():

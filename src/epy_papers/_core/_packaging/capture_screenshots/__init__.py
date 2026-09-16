@@ -156,7 +156,13 @@ def main() -> int:
     instance = QApplication.instance()
     if isinstance(instance, QApplication):
         app = instance
-    elif instance is None:
+    elif instance is None:  # pragma: no cover - a second QApplication aborts
+        # Unreachable under pytest, and not merely awkward: the suite builds a
+        # QApplication before any test reaches here, Qt allows exactly one per
+        # process, and constructing a second raises at the shiboken layer
+        # ("Please destroy the QApplication singleton before creating a new
+        # QApplication instance"). Faking instance() as None to reach this line
+        # would take the whole session down with it.
         app = QApplication(sys.argv)
     else:
         raise SystemExit(

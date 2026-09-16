@@ -104,3 +104,58 @@ def test_add_line_numbering_inserts_before_existing_cols_element(
     ln_index = children.index(sect_pr.find(qn("w:lnNumType")))
     cols_index = children.index(cols)
     assert ln_index < cols_index
+
+
+def test_add_line_numbering_appends_when_there_is_no_cols_element():
+    """Counter-example to the "insert before an existing <w:cols>" test
+    above. A default ``Document()`` section actually DOES carry a
+    ``<w:cols>`` element already (verified: asserting its absence on a
+    fresh document fails) -- removing it is what genuinely exercises the
+    "just append" branch.
+    """
+    from docx.oxml.ns import qn
+
+    doc = Document()
+    section = doc.sections[0]
+    sect_pr = section._sectPr
+    existing_cols = sect_pr.find(qn("w:cols"))
+    if existing_cols is not None:
+        sect_pr.remove(existing_cols)
+    assert sect_pr.find(qn("w:cols")) is None  # precondition, now genuine
+
+    mrd._add_line_numbering(section)
+
+    assert sect_pr.find(qn("w:lnNumType")) is not None
+
+
+def test_build_skips_a_heading_style_missing_from_the_base_template(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """Every real ``Document()`` ships all five styles, so hitting the
+    ``KeyError`` guard means faking a template that is missing one.
+    """
+    monkeypatch.setattr(mrd, "_REF_DIR", tmp_path)
+    real_document = mrd.Document
+
+    class _MissingHeading2:
+        def __init__(self) -> None:
+            self._doc = real_document()
+
+        def __getattr__(self, name):
+            return getattr(self._doc, name)
+
+        @property
+        def styles(self):
+            real_styles = self._doc.styles
+
+            class _Styles:
+                def __getitem__(self, key):
+                    if key == "Heading 2":
+                        raise KeyError(key)
+                    return real_styles[key]
+
+            return _Styles()
+
+    monkeypatch.setattr(mrd, "Document", _MissingHeading2)
+    out = mrd.build(line_numbered=False)
+    assert out.exists()  # the build still completes despite the gap
