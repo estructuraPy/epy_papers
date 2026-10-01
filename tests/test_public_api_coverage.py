@@ -19,6 +19,7 @@ tests.
 from __future__ import annotations
 
 import epy_papers as ep
+from epy_papers._core._catalog import _dumps_compact
 
 SIMPLE = (
     "---\ntitle: {en: A test manuscript}\n"
@@ -126,15 +127,15 @@ def test_remove_user_journal_absent_from_an_existing_catalog_returns_false(
 
 
 def test_dumps_compact_leaf_list_stays_on_one_line():
-    assert ep._dumps_compact([1, 2, "three"]) == '[1, 2, "three"]'
+    assert _dumps_compact([1, 2, "three"]) == '[1, 2, "three"]'
 
 
 def test_dumps_compact_empty_list_is_bracket_pair():
-    assert ep._dumps_compact([]) == "[]"
+    assert _dumps_compact([]) == "[]"
 
 
 def test_dumps_compact_list_of_dicts_expands_multiline():
-    result = ep._dumps_compact([{"a": 1}, {"b": 2}])
+    result = _dumps_compact([{"a": 1}, {"b": 2}])
     assert result == '[\n  {"a": 1},\n  {"b": 2}\n]'
 
 
