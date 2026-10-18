@@ -1713,6 +1713,9 @@ def main(argv: list[str] | None = None) -> int:
             "The epy_papers GUI needs a QApplication; a bare "
             "QCoreApplication cannot own a QMainWindow."
         )
+    from epy_export import apply_theme  # noqa: PLC0415
+
+    apply_theme(app)
     logo_pix = _load_branding_pixmap("epy_papers.png")
     if not logo_pix.isNull():
         app.setWindowIcon(QIcon(logo_pix))
