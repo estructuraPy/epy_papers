@@ -19,6 +19,7 @@ session that expects the real CSS/MathJax bundle.
 from __future__ import annotations
 
 import sys
+from typing import Any, cast
 
 import pytest
 from PySide6.QtWidgets import QApplication
@@ -529,7 +530,8 @@ def test_render_now_preserves_the_last_scroll_position(
     monkeypatch.setattr(tab.view, "load", lambda url: captured.append(url))
     tab._last_pos = "epypos=s:0.42"
     tab._render_now(preserve=True)
-    assert captured[-1].fragment() == "epypos=s:0.42"
+    last_url = cast(Any, captured[-1])
+    assert last_url.fragment() == "epypos=s:0.42"
 
 
 # ---------------------------------------------------------------------------

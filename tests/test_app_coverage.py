@@ -18,7 +18,7 @@ a modal dialog does not fail, it hangs the run.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 from PySide6.QtCore import QThread, QTimer
@@ -334,7 +334,7 @@ def test_populate_theme_menu_is_a_noop_without_a_theme_submenu():
 
     fake = SimpleNamespace(theme_group=None)
     # Must not raise AttributeError reaching for `.theme_sub`.
-    app_module.PaperWindow._populate_theme_menu(fake)
+    app_module.PaperWindow._populate_theme_menu(cast(Any, fake))
 
 
 # ---------------------------------------------------------------------------

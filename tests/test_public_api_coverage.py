@@ -63,7 +63,9 @@ def test_to_draft_defaults_to_the_journals_first_declared_format(tmp_path):
     renames its extension.
     """
     prof = ep.journal_profile("eng-structures")
-    assert prof.get("formats")[0] == "tex"
+    formats = prof.get("formats")
+    assert formats is not None
+    assert formats[0] == "tex"
     out = ep.Paper(SIMPLE).to_draft(
         "eng-structures", tmp_path / "draft_default"
     )

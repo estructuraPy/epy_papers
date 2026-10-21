@@ -151,7 +151,9 @@ def test_tar_add_data_writes_the_exact_bytes():
     with tarfile.open(fileobj=buf, mode="r:gz") as tf:
         member = tf.getmember("./hello.txt")
         assert member.mode == 0o644
-        assert tf.extractfile(member).read() == b"hello world"
+        extracted = tf.extractfile(member)
+        assert extracted is not None
+        assert extracted.read() == b"hello world"
 
 
 def test_tar_add_dir_creates_a_directory_entry():
@@ -205,10 +207,14 @@ def test_build_control_tar_contains_the_maintainer_scripts():
             "./prerm",
             "./postrm",
         }
-        control = tf.extractfile("./control").read().decode()
+        control_member = tf.extractfile("./control")
+        assert control_member is not None
+        control = control_member.read().decode()
         assert f"Package: {bd.PKG_NAME}" in control
         assert bd.PKG_VERSION in control
-        postinst = tf.extractfile("./postinst").read().decode()
+        postinst_member = tf.extractfile("./postinst")
+        assert postinst_member is not None
+        postinst = postinst_member.read().decode()
         assert "python3 -m venv" in postinst
 
 
@@ -227,7 +233,9 @@ def test_build_data_tar_includes_the_icon_when_present(tmp_path: Path):
             "./usr/share/icons/hicolor/256x256/apps/epy_papers.png" in names
         )
         assert f"./usr/bin/{bd.PKG_NAME}" in names
-        launcher = tf.extractfile(f"./usr/bin/{bd.PKG_NAME}").read().decode()
+        launcher_member = tf.extractfile(f"./usr/bin/{bd.PKG_NAME}")
+        assert launcher_member is not None
+        launcher = launcher_member.read().decode()
         assert "epy_papers.app import main" in launcher
         # the real epy_papers package tree is bundled
         assert any(

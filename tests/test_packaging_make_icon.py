@@ -38,7 +38,9 @@ def test_letterbox_produces_a_square_transparent_canvas(tmp_path: Path):
     assert frame.mode == "RGBA"
     # A corner must be fully transparent: a wide source letterboxed into a
     # square canvas cannot cover it.
-    assert frame.getpixel((0, 0))[3] == 0
+    pixel = frame.getpixel((0, 0))
+    assert isinstance(pixel, tuple)
+    assert pixel[3] == 0
 
 
 def test_letterbox_centers_the_scaled_source():

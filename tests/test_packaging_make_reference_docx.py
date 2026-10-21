@@ -11,6 +11,7 @@ live. A real ``build()`` call would overwrite them, which the task's
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Any, cast
 
 import pytest
 from docx import Document
@@ -32,7 +33,7 @@ def test_build_writes_us_letter_geometry_and_body_font(
     assert section.page_width == mrd.Inches(8.5)
     assert section.page_height == mrd.Inches(11)
     assert section.top_margin == mrd.Inches(1)
-    normal = doc.styles["Normal"]
+    normal = cast(Any, doc.styles["Normal"])
     assert normal.font.name == mrd.BODY_FONT
     assert normal.font.size == mrd.BODY_SIZE
     assert (
@@ -46,7 +47,7 @@ def test_build_seeds_every_heading_style_and_a_body_paragraph(
     monkeypatch.setattr(mrd, "_REF_DIR", tmp_path)
     out = mrd.build(line_numbered=False)
     doc = Document(str(out))
-    styles_used = {p.style.name for p in doc.paragraphs}
+    styles_used = {cast(Any, p.style).name for p in doc.paragraphs}
     assert {"Title", "Heading 1", "Heading 2", "Heading 3", "Heading 4"} <= (
         styles_used
     )
