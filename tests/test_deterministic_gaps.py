@@ -19,7 +19,7 @@ def window(monkeypatch: pytest.MonkeyPatch, tmp_path: Path):
     from PySide6.QtCore import QSettings
     from PySide6.QtWidgets import QApplication
 
-    QApplication.instance() or QApplication([])
+    _ = QApplication.instance() or QApplication([])
 
     from epy_papers import app as app_module
 
