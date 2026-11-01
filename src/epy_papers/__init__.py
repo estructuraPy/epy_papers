@@ -84,7 +84,7 @@ __all__ = [
 
 
 #: The visual-selection surface, resolved lazily (PEP 562) so importing the
-#: package does not pay for the theme stack. ``get_theme`` is ``_core.themes.get``
+#: package does not pay for the theme stack. ``get_theme`` is the theme lookup
 #: under a name that survives being read at the top level of another library;
 #: ``themes`` is the module itself, like epy_reports and epy_slides expose.
 _LAZY = {"get_theme", "themes"}
