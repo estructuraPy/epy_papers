@@ -78,4 +78,22 @@ __all__ = [
     "user_journals_path",
     "add_journal",
     "remove_user_journal",
+    "get_theme",
+    "themes",
 ]
+
+
+#: The visual-selection surface, resolved lazily (PEP 562) so importing the
+#: package does not pay for the theme stack. ``get_theme`` is ``_core.themes.get``
+#: under a name that survives being read at the top level of another library;
+#: ``themes`` is the module itself, like epy_reports and epy_slides expose.
+_LAZY = {"get_theme", "themes"}
+
+
+def __getattr__(name: str) -> object:
+    """Resolve the theme exports on first use."""
+    if name in _LAZY:
+        from epy_papers._core import themes
+
+        return themes.get if name == "get_theme" else themes
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

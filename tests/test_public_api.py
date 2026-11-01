@@ -48,3 +48,12 @@ def test_paper_from_string_and_profile_view():
     assert view.name == "Engineering Structures"
     assert view.get("page_size") == "a4"
     assert view.columns == "single"
+
+
+def test_theme_surface_matches_the_document_family():
+    """epy_papers exposes get_theme/themes like epy_reports and epy_slides."""
+    assert hasattr(ep, "get_theme")
+    assert hasattr(ep, "themes")
+    theme = ep.get_theme("corporate")
+    assert ep.themes.get("corporate") is not None
+    assert theme is not None
