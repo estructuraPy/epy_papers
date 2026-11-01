@@ -96,4 +96,6 @@ def __getattr__(name: str) -> object:
         from epy_papers._core import themes
 
         return themes.get if name == "get_theme" else themes
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    raise AttributeError(
+        f"module {__name__!r} has no attribute {name!r}"
+    )
