@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 import pytest
 
 import epy_papers as ep
@@ -54,6 +56,6 @@ def test_theme_surface_matches_the_document_family():
     """epy_papers exposes get_theme/themes like epy_reports and epy_slides."""
     assert hasattr(ep, "get_theme")
     assert hasattr(ep, "themes")
-    theme = ep.get_theme("corporate")
-    assert ep.themes.get("corporate") is not None
+    theme = cast(Any, ep).get_theme("corporate")
+    assert cast(Any, ep).themes.get("corporate") is not None
     assert theme is not None
