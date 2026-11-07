@@ -54,6 +54,15 @@ APP_NAME = "epy_papers"
 
 SUPPORTED_EXTENSIONS = {".md", ".markdown"}
 
+_GUIDE_STEPS = (
+    ("Document", "Create or open a manuscript."),
+    ("Write", "Write the paper; its preview updates on the right."),
+    ("Journal", "Choose the journal profile the manuscript follows."),
+    ("Review", "Run the validation and read its findings."),
+    ("Export", "Export the manuscript to PDF, DOCX or LaTeX."),
+)
+_GUIDE_STAGES = ((0, "Start"), (1, "Write"), (2, "Journal"), (4, "Export"))
+
 FILE_FILTER = "Markdown paper (*.md *.markdown);;All files (*)"
 
 # Autosave cadence: one repeating timer on the window, not per tab, so
@@ -160,6 +169,31 @@ class PaperWindow(QMainWindow):
         self.tabs.tabCloseRequested.connect(self._close_tab_at)
         self.tabs.currentChanged.connect(self._on_current_changed)
         self.setCentralWidget(self.tabs)
+
+        from epy_export._ui.workflow_guide import WorkflowGuide
+
+        self.guide = WorkflowGuide(
+            _GUIDE_STEPS,
+            _GUIDE_STAGES,
+            self._go_to_guide_step,
+            translate=i18n.tr,
+            on_language_changed=i18n.on_language_changed,
+            subtitle="Follow the manuscript from source to export.",
+        )
+        guide_dock = QDockWidget()
+        guide_dock.setWindowTitle(i18n.tr("Step by step"))
+        i18n.on_language_changed(
+            lambda: guide_dock.setWindowTitle(
+                i18n.tr("Step by step")
+            )
+        )
+        guide_dock.setObjectName("guide")
+        guide_dock.setMinimumWidth(330)
+        guide_dock.setWidget(self.guide)
+        self.guide_dock = guide_dock
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, guide_dock)
+        self.guide.collapse_requested.connect(guide_dock.hide)
+
         self.setStatusBar(QStatusBar(self))
 
         self._build_actions()
@@ -470,6 +504,9 @@ class PaperWindow(QMainWindow):
         self.export_menu.addAction(self.act_docs_export)
 
         self.view_menu = QMenu("&View", self)
+        self.guide_action = self.guide_dock.toggleViewAction()
+        self.guide_action.setText(i18n.tr("Step by step"))
+        self.view_menu.addAction(self.guide_action)
         if _THEMES_AVAILABLE and _themes is not None:
             self.theme_sub = self.view_menu.addMenu("Theme")
             self._populate_theme_menu()
@@ -1349,6 +1386,31 @@ class PaperWindow(QMainWindow):
         self._run_validation()
 
     # ------------------------------------------ file actions
+
+    def _go_to_guide_step(self, index: int) -> None:
+        """Run the action named by one guide step."""
+        if index == 0:
+            self._new_tab()
+        elif index == 1:
+            self._focus_active_editor()
+        elif index == 2:
+            self._focus_journal()
+        elif index == 3:
+            self._run_validation()
+        elif index == 4:
+            self._export_pdf()
+        self.guide.set_current(index)
+
+    def _focus_active_editor(self) -> None:
+        """Put the caret in the active manuscript's editor."""
+        tab = self.tabs.currentWidget()
+        editor = getattr(tab, "editor", None)
+        if editor is not None:
+            editor.setFocus()
+
+    def _focus_journal(self) -> None:
+        """Focus the journal selector."""
+        self._journal_combo.setFocus()
 
     def _new_tab(self):
         """Create an empty untitled tab and focus it."""

@@ -1601,3 +1601,50 @@ def test_drop_event_opens_only_supported_extensions(
     monkeypatch.setattr(window, "open_path", lambda p: opened.append(p))
     window.dropEvent(event)
     assert opened == [md]
+
+
+def test_the_guide_walks_the_manuscript_steps(window, monkeypatch) -> None:
+    """The guide names the manuscript route and each step has an action."""
+    calls: list[str] = []
+    window._new_tab()
+    window._focus_active_editor()
+    window._focus_journal()
+    monkeypatch.setattr(window, "_new_tab", lambda: calls.append("new"))
+    monkeypatch.setattr(
+        window, "_focus_active_editor", lambda: calls.append("write")
+    )
+    monkeypatch.setattr(
+        window, "_focus_journal", lambda: calls.append("journal")
+    )
+    monkeypatch.setattr(
+        window, "_run_validation", lambda: calls.append("review")
+    )
+    monkeypatch.setattr(
+        window, "_export_pdf", lambda: calls.append("export")
+    )
+    assert window.guide.step_names() == [
+        "Document",
+        "Write",
+        "Journal",
+        "Review",
+        "Export",
+    ]
+    for index in range(5):
+        window._go_to_guide_step(index)  # noqa: SLF001
+    assert calls == ["new", "write", "journal", "review", "export"]
+    assert window.guide.current() == 4
+
+
+def test_the_guide_is_on_the_right_and_can_be_hidden(window) -> None:
+    """The arrow hides it and the View action brings it back."""
+    from PySide6.QtCore import Qt
+
+    window.show()
+    assert window.guide_action in window.view_menu.actions()
+    assert window.dockWidgetArea(window.guide_dock) == (
+        Qt.DockWidgetArea.RightDockWidgetArea
+    )
+    window.guide._collapse_button.click()  # noqa: SLF001
+    assert not window.guide_dock.isVisible()
+    window.guide_action.trigger()
+    assert window.guide_dock.isVisible()

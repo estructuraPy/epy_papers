@@ -23,6 +23,30 @@ _observers: list[Callable[[], None]] = []
 # Keys MUST match the source strings exactly (including trailing "..."
 # vs "…" ellipsis and Qt "&" menu accelerators).
 _ES: dict[str, str] = {
+    "Hide guide": "Ocultar guia",
+    "Step by step": "Paso a paso",
+    "GUIDED WORKFLOW": "FLUJO GUIADO",
+    "Step {current} of {total}": "Paso {current} de {total}",
+    "Back": "Atras",
+    "Next: {step}": "Siguiente: {step}",
+    "End of the guide": "Fin de la guia",
+    "Start": "Inicio",
+    "Document": "Documento",
+    "Write": "Escribir",
+    "Journal": "Revista",
+    "Review": "Revisar",
+    "Follow the manuscript from source to export.":
+        "Siga el manuscrito desde el origen hasta la exportacion.",
+    "Create or open a manuscript.":
+        "Cree o abra un manuscrito.",
+    "Write the paper; its preview updates on the right.":
+        "Escriba el articulo; su vista previa se actualiza a la derecha.",
+    "Choose the journal profile the manuscript follows.":
+        "Elija el perfil de revista que sigue el manuscrito.",
+    "Run the validation and read its findings.":
+        "Ejecute la validacion y lea sus resultados.",
+    "Export the manuscript to PDF, DOCX or LaTeX.":
+        "Exporte el manuscrito a PDF, DOCX o LaTeX.",
     # --- top-level menus (with & accelerator) ---
     "&File": "&Archivo",
     "&Text": "&Texto",
