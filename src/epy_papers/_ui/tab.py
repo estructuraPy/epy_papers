@@ -207,7 +207,7 @@ def _design_css() -> str:
         from epy_papers._core import themes as _t  # noqa: PLC0415
         from epy_papers._core._design import design_css  # noqa: PLC0415
 
-        return design_css(_t.get(_t.DEFAULT_THEME_ID), scope="")
+        return design_css(_t.get(_t.ACTIVE_THEME_ID), scope="")
     except Exception:
         return ""
 
@@ -1116,6 +1116,11 @@ class PaperTab(QWidget):
 
     def _render(self) -> None:
         """Debounced re-render after an edit."""
+        self._render_now(preserve=True)
+
+    def refresh_theme(self) -> None:
+        """Repaint the preview after the window changes theme."""
+        _design_css.cache_clear()
         self._render_now(preserve=True)
 
     def _render_now(self, *, preserve: bool = False) -> None:

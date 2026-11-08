@@ -33,6 +33,16 @@ DEFAULT_THEME_ID = "corporate"
 
 THEMES: dict[str, Theme] = load_all_themes()
 
+ACTIVE_THEME_ID = DEFAULT_THEME_ID
+"""The theme whose document CSS the live preview should use."""
+
+
+def set_active(theme_id: str) -> None:
+    """Remember the theme that is actually selected in the window."""
+    global ACTIVE_THEME_ID
+    if theme_id in THEMES:
+        ACTIVE_THEME_ID = theme_id
+
 
 def reload() -> dict[str, Theme]:
     """Re-scan bundled + user themes and refresh :data:`THEMES` in place.
@@ -68,6 +78,7 @@ def get(theme_id: str | None) -> Theme:
 
 
 __all__ = [
+    "ACTIVE_THEME_ID",
     "DEFAULT_THEME_ID",
     "THEMES",
     "Theme",
@@ -78,6 +89,7 @@ __all__ = [
     "qss_for",
     "reload",
     "save_user_theme",
+    "set_active",
     "user_theme_ids",
     "user_themes_dir",
 ]

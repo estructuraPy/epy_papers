@@ -9,7 +9,7 @@ import sys
 from collections.abc import Callable
 from pathlib import Path
 
-from epy_export import ORGANIZATION
+from epy_export import ORGANIZATION, apply_chrome
 from PySide6.QtCore import QSettings, Qt, QTimer
 from PySide6.QtGui import (
     QAction,
@@ -208,7 +208,8 @@ class PaperWindow(QMainWindow):
         # Optionally apply epy_reports theme
         if _THEMES_AVAILABLE and _themes is not None:
             saved_theme = str(
-                self._settings.value(
+                self._settings.value("theme_default", "")
+                or self._settings.value(
                     "theme", _themes.DEFAULT_THEME_ID
                 )
             )
@@ -233,6 +234,7 @@ class PaperWindow(QMainWindow):
         self._sync_language_menu()
 
         self._open_welcome_tab()
+        self._build_assistant()
 
     # -------------------------------------------- actions / menus
 
@@ -377,6 +379,18 @@ class PaperWindow(QMainWindow):
 
         self.act_theme_gallery = QAction("Browse themes…", self)
         self.act_theme_gallery.triggered.connect(self._open_theme_gallery)
+        self.act_new_theme = QAction("New theme.", self)
+        self.act_new_theme.triggered.connect(
+            lambda: self._open_theme_editor(edit_id=None)
+        )
+        self.act_edit_theme = QAction("Edit current theme.", self)
+        self.act_edit_theme.triggered.connect(self._edit_current_theme)
+        self.act_delete_theme = QAction("Delete custom theme.", self)
+        self.act_delete_theme.triggered.connect(self._delete_custom_theme)
+        self.act_default_theme = QAction(
+            "Use current theme as default", self
+        )
+        self.act_default_theme.triggered.connect(self._set_default_theme)
 
         self.act_new_journal = QAction("Add Journal...", self)
         self.act_new_journal.triggered.connect(self._new_journal)
@@ -533,6 +547,10 @@ class PaperWindow(QMainWindow):
                 self.theme_sub.addAction(act)
         self.theme_sub.addSeparator()
         self.theme_sub.addAction(self.act_theme_gallery)
+        self.theme_sub.addAction(self.act_new_theme)
+        self.theme_sub.addAction(self.act_edit_theme)
+        self.theme_sub.addAction(self.act_delete_theme)
+        self.theme_sub.addAction(self.act_default_theme)
 
     def _build_toolbar(self) -> None:
         """Build the main toolbar with dropdown buttons + journal selector."""
@@ -878,17 +896,30 @@ class PaperWindow(QMainWindow):
             theme = _themes.get(theme_id)
         except Exception:
             return
+        self._current_theme = theme
+        _themes.set_active(theme.id)
         qapp = QApplication.instance()
         if isinstance(qapp, QApplication):
             try:
                 _themes.apply_palette(qapp, theme)
                 qapp.setStyleSheet(_themes.qss_for(theme))
+                apply_chrome(qapp)
             except Exception:
                 pass
         if theme.id in self.theme_actions:
             self.theme_actions[theme.id].setChecked(True)
         if persist:
             self._settings.setValue("theme", theme.id)
+        try:
+            from epy_papers._ui.tab import _design_css  # noqa: PLC0415
+
+            _design_css.cache_clear()
+        except Exception:
+            pass
+        for index in range(self.tabs.count()):
+            widget = self.tabs.widget(index)
+            if hasattr(widget, "refresh_theme"):
+                widget.refresh_theme()
 
     def _open_theme_gallery(self) -> None:
         """Open the theme gallery; apply the chosen theme on accept."""
@@ -898,15 +929,116 @@ class PaperWindow(QMainWindow):
             ThemeGalleryDialog,
         )
 
-        current = str(
-            self._settings.value("theme", _themes.DEFAULT_THEME_ID)
-        )
+        current = getattr(
+            self, "_current_theme", _themes.get(None)
+        ).id
         dialog = ThemeGalleryDialog(self, current_id=current)
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return
         theme_id = dialog.selected_theme_id()
         if theme_id:
             self._apply_theme(theme_id)
+
+    def _refresh_themes(self, select_id: str | None = None) -> None:
+        """Reload bundled and custom themes and rebuild the menu."""
+        if not _THEMES_AVAILABLE or _themes is None:
+            return
+        _themes.reload()
+        self._build_theme_actions()
+        self._populate_theme_menu()
+        self._capture_i18n()
+        if i18n.current_language() != "en":
+            self._retranslate_ui()
+        if select_id:
+            self._apply_theme(select_id)
+
+    def _open_theme_editor(self, edit_id: str | None = None) -> None:
+        """Create or edit a document theme."""
+        if not _THEMES_AVAILABLE or _themes is None:
+            return
+        from epy_papers._ui.theme_editor_dialog import (  # noqa: PLC0415
+            ThemeEditorDialog,
+        )
+
+        current = getattr(self, "_current_theme", _themes.get(None)).id
+        dialog = ThemeEditorDialog(
+            self, base_theme_id=current, edit_id=edit_id
+        )
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return
+        try:
+            theme_id = _themes.save_user_theme(dialog.epyson_payload())
+        except (OSError, ValueError) as exc:
+            QMessageBox.warning(self, APP_NAME, str(exc))
+            return
+        self._refresh_themes(select_id=theme_id)
+        self.statusBar().showMessage(
+            i18n.tr("Theme saved: {name}").format(
+                name=dialog.theme_name()
+            ),
+            3000,
+        )
+
+    def _edit_current_theme(self) -> None:
+        """Edit the active custom theme, or clone a bundled one."""
+        current = getattr(self, "_current_theme", _themes.get(None))
+        edit_id = (
+            current.id
+            if current.id in _themes.user_theme_ids()
+            else None
+        )
+        self._open_theme_editor(edit_id=edit_id)
+
+    def _delete_custom_theme(self) -> None:
+        """Delete one custom document theme."""
+        from PySide6.QtWidgets import QInputDialog  # noqa: PLC0415
+
+        user_ids = sorted(_themes.user_theme_ids())
+        if not user_ids:
+            QMessageBox.information(
+                self,
+                APP_NAME,
+                i18n.tr("No custom themes to delete."),
+            )
+            return
+        names = [_themes.THEMES[i].display_name for i in user_ids]
+        choice, accepted = QInputDialog.getItem(
+            self,
+            i18n.tr("Delete custom theme?"),
+            i18n.tr("Theme:"),
+            names,
+            0,
+            False,
+        )
+        if not accepted or not choice:
+            return
+        theme_id = user_ids[names.index(choice)]
+        if (
+            QMessageBox.question(
+                self,
+                APP_NAME,
+                i18n.tr("Delete the custom theme {name}?").format(
+                    name=choice
+                ),
+            )
+            != QMessageBox.StandardButton.Yes
+        ):
+            return
+        _themes.delete_user_theme(theme_id)
+        current = getattr(self, "_current_theme", _themes.get(None)).id
+        fallback = (
+            _themes.DEFAULT_THEME_ID
+            if current == theme_id
+            else current
+        )
+        self._refresh_themes(select_id=fallback)
+
+    def _set_default_theme(self) -> None:
+        """Remember the active document theme as the startup default."""
+        if hasattr(self, "_current_theme"):
+            self._settings.setValue(
+                "theme_default", self._current_theme.id
+            )
 
     def _open_design_block_picker(self) -> None:
         """Open the design-block picker; insert the chosen block on accept."""
@@ -1371,6 +1503,72 @@ class PaperWindow(QMainWindow):
             i18n.tr("epy_docs export failed:") + "\n\n" + message,
         )
 
+
+    def _build_assistant(self) -> None:
+        """Add the shared assistant beside the step guide."""
+        from epy_papers.epy_studio_connect.assistant import (
+            available,
+            create_panel,
+        )
+
+        if not available():
+            return
+        try:
+            panel = create_panel(
+                app_id="epy_papers",
+                profile="You edit an academic manuscript. Preserve its "
+                "journal structure, citations, captions and formal "
+                "register. Never invent references or results.",
+                context_provider=self._assistant_context,
+                apply_callback=self._assistant_apply,
+                language=i18n.current_language(),
+            )
+        except Exception:  # noqa: BLE001 - an optional capability
+            return
+        dock = QDockWidget(i18n.tr("Assistant"), self)
+        dock.setObjectName("assistant")
+        dock.setMinimumWidth(330)
+        dock.setWidget(panel)
+        self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)
+        self.tabifyDockWidget(self.guide_dock, dock)
+        self.guide_dock.raise_()
+        self.assistant = panel
+        self.assistant_dock = dock
+        if hasattr(self, "view_menu"):
+            action = dock.toggleViewAction()
+            action.setText("Assistant")
+            self.view_menu.addAction(action)
+
+    def _assistant_context(self) -> dict[str, object]:
+        """Return the active document context for the assistant."""
+        tab = self._current_tab()
+        if tab is None:
+            return {
+                "title": "",
+                "document": "",
+                "selection": "",
+                "language": i18n.current_language(),
+            }
+        cursor = tab.editor.textCursor()
+        return {
+            "title": tab.title(),
+            "document": tab.editor.toPlainText(),
+            "selection": cursor.selectedText().replace("\u2029", "\n"),
+            "language": i18n.current_language(),
+            "notes": str(tab.path) if tab.path is not None else "",
+        }
+
+    def _assistant_apply(self, text: str) -> bool:
+        """Replace the selection, or insert at the caret, with the proposal."""
+        tab = self._current_tab()
+        if tab is None:
+            return False
+        cursor = tab.editor.textCursor()
+        cursor.insertText(text)
+        tab.editor.setTextCursor(cursor)
+        tab.editor.setFocus()
+        return True
+
     def _current_tab(self):
         """Return the currently visible PaperTab, if any."""
         from epy_papers._ui.tab import PaperTab  # noqa: PLC0415
@@ -1782,6 +1980,28 @@ def main(argv: list[str] | None = None) -> int:
     if not logo_pix.isNull():
         app.setWindowIcon(QIcon(logo_pix))
     win = PaperWindow()
+    from epy_export._ui.app_header import install_header  # noqa: PLC0415
+
+    def _studio() -> None:
+        try:
+            from epy_papers.epy_studio_connect import open_app  # noqa: PLC0415
+            open_app("epy_studio")
+        except Exception:  # noqa: BLE001 - the door is optional
+            pass
+
+    install_header(
+        win,
+        title="ePy Papers",
+        subtitle="Journal manuscripts from one source.",
+        logo_path=Path(__file__).resolve().parent
+        / "_config"
+        / "_assets"
+        / "branding"
+        / "epy_papers.png",
+        guide_dock=getattr(win, "guide_dock", None),
+        assistant_dock=getattr(win, "assistant_dock", None),
+        on_studio=_studio,
+    )
     win.show()
     for f in args.files:
         p = Path(f)

@@ -213,6 +213,65 @@ _ES: dict[str, str] = {
         "HTML no lo necesita.\n\n"
         "¿Descargar e instalar TinyTeX ahora?"
     ),
+
+    "Background": "Fondo",
+    "Based on:": "Basado en:",
+    "Border": "Borde",
+    "Callout colors": "Colores de avisos",
+    "Code background": "Fondo de código",
+    "Code font:": "Fuente de código:",
+    "Colors": "Colores",
+    "Delete custom theme?": "¿Eliminar tema personalizado?",
+    "Delete the custom theme {name}?":
+        "¿Eliminar el tema personalizado {name}?",
+    "Fonts": "Fuentes",
+    "Heading 1": "Encabezado 1",
+    "Heading 2": "Encabezado 2",
+    "Heading 3": "Encabezado 3",
+    "Heading 4": "Encabezado 4",
+    "Heading 5": "Encabezado 5",
+    "Heading 6": "Encabezado 6",
+    "Headings": "Encabezados",
+    "Highlight": "Resaltado",
+    "Important": "Importante",
+    "Link / secondary": "Enlace / secundario",
+    "Name:": "Nombre:",
+    "No custom themes to delete.":
+        "No hay temas personalizados para eliminar.",
+    "Note": "Nota",
+    "Note callout": "Aviso de nota",
+    "Page background": "Fondo de página",
+    "Pick a color": "Elegir un color",
+    "Please enter a name for the theme.": "Escriba un nombre para el tema.",
+    "Preview": "Vista previa",
+    "Primary / accent": "Primario / acento",
+    "Text font:": "Fuente del texto:",
+    "Theme editor": "Editor de temas",
+    "Theme saved: {name}": "Tema guardado: {name}",
+    "Theme:": "Tema:",
+    "Tip": "Consejo",
+    "Typography (pt)": "Tipografía (pt)",
+    "Warning": "Advertencia",
+    "Caution": "Precaución",
+    "Body": "Cuerpo",
+    "Caption": "Pie de figura",
+
+    "New theme.": "Nuevo tema.",
+    "Edit current theme.": "Editar tema actual.",
+    "Delete custom theme.": "Eliminar tema personalizado.",
+
+    "Use current theme as default":
+        "Usar el tema actual como predeterminado",
+
+    "My theme":
+        "Mi tema",
+    "Heading":
+        "Encabezado",
+    "Assistant":
+        "Asistente",
+    "Body text with a <a href='#'>link</a> and <code>inline code</code>.":
+        "Texto de cuerpo con un <a href='#'>enlace</a> y "
+        "<code>código en línea</code>.",
 }
 
 
