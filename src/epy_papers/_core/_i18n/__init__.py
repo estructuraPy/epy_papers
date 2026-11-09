@@ -139,6 +139,10 @@ _ES: dict[str, str] = {
     # --- Help menu ---
     "User Manual (English)": "Manual de usuario (Inglés)",
     "User Manual (Spanish)": "Manual de usuario (Español)",
+    "Open demo project": "Abrir proyecto de demostración",
+    "Demo unavailable": "Demostración no disponible",
+    "Could not load the bundled demo: {why}":
+        "No se pudo cargar la demostración incluida: {why}",
     "About epy_papers...": "Acerca de epy_papers...",
     # --- Journal selector / toolbar ---
     "Journal:": "Revista:",
