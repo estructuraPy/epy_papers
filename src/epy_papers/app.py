@@ -1378,7 +1378,7 @@ class PaperWindow(QMainWindow):
     # ------------------------------------------ Help / manuals
 
     def _open_manual(self, filename: str) -> None:
-        """Open a bundled manual document in a new tab."""
+        """Open the bundled manual in its single tab."""
         text = _load_manual_text(filename)
         if not text:
             QMessageBox.warning(
@@ -1389,15 +1389,23 @@ class PaperWindow(QMainWindow):
                 ),
             )
             return
+        existing = getattr(self, "_manual_tab", None)
+        if existing is not None and self.tabs.indexOf(existing) >= 0:
+            if not getattr(existing, "_dirty", False):
+                existing.set_initial_text(text, path=None)
+            self.tabs.setCurrentWidget(existing)
+            return
         tab = self._create_tab()
         tab.set_initial_text(text, path=None)
+        self._manual_tab = tab
 
     # ------------------------------------------ tab management
 
     def _open_welcome_tab(self) -> None:
-        """Create the initial tab with the bundled welcome text."""
+        """Create the one manual tab shown at startup."""
         tab = self._create_tab()
         tab.set_initial_text(WELCOME_TEXT, path=None)
+        self._manual_tab = tab
 
     def _create_tab(self):
         """Instantiate a new PaperTab and wire its signals."""
