@@ -43,6 +43,16 @@ declarations:
 bibliography: refs.bib
 ---
 
+# Manuscrito de demostración
+
+Este manual es el recorrido del ejemplo de trabajo. *Ayuda -> Abrir
+proyecto de demostración* carga `demo_es.md` en español o `demo.md` en
+inglés, según el idioma de la interfaz. El demo es un manuscrito
+editable con título, resumen y palabras clave bilingües, una ecuación
+demanda-capacidad y una tabla de propiedades; el panel de validación lo
+lee mientras usted edita. Úselo para seguir las secciones de autoría y
+exportación de este manual.
+
 # Introducción
 
 epy_papers resuelve un problema práctico que enfrenta todo investigador que

@@ -43,6 +43,15 @@ declarations:
 bibliography: refs.bib
 ---
 
+# Demo manuscript
+
+This manual is the tour of the worked example. *Help -> Open demo
+project* loads `demo.md` in English or `demo_es.md` in Spanish,
+following the interface language. The demo is an editable manuscript
+with a bilingual title, abstract and keywords, a demand-capacity
+equation and a property table; the validation panel reads it as you
+edit. Use it to follow the authoring and export sections below.
+
 # Introduction
 
 epy_papers solves a practical problem faced by every researcher who submits to
