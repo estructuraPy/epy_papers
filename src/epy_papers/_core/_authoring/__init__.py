@@ -220,7 +220,12 @@ class Manuscript:
             loaded = yaml.safe_load(fm_text)
             if isinstance(loaded, dict):
                 meta = loaded
-        authors = [Author.coerce(a) for a in (meta.get("authors") or [])]
+        raw_authors = meta.get("authors") or []
+        if not raw_authors and meta.get("author"):
+            # Reports and Slides write a scalar ``author``; accept it so
+            # their Markdown can be opened here without losing the byline.
+            raw_authors = [{"name": str(meta["author"])}]
+        authors = [Author.coerce(a) for a in raw_authors]
         declarations = {
             str(k): str(v)
             for k, v in (meta.get("declarations") or {}).items()

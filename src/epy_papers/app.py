@@ -53,7 +53,7 @@ from epy_papers.epy_suite_connect._adapters.docs_bridge import (
 
 APP_NAME = "epy_papers"
 
-SUPPORTED_EXTENSIONS = {".md", ".markdown"}
+SUPPORTED_EXTENSIONS = {".md", ".markdown", ".qmd"}
 
 _GUIDE_STEPS = (
     ("Document", "Create or open a manuscript."),
@@ -64,7 +64,7 @@ _GUIDE_STEPS = (
 )
 _GUIDE_STAGES = ((0, "Start"), (1, "Write"), (2, "Journal"), (4, "Export"))
 
-FILE_FILTER = "Markdown paper (*.md *.markdown);;All files (*)"
+FILE_FILTER = "Markdown / Quarto paper (*.md *.markdown *.qmd);;All files (*)"
 
 # Autosave cadence: one repeating timer on the window, not per tab, so
 # an idle app costs one wake-up. Kept next to the family's other
@@ -554,10 +554,9 @@ class PaperWindow(QMainWindow):
         self.view_menu.addAction(self.act_autosave)
 
         self.help_menu = QMenu("&Help", self)
-        self.help_menu.addAction(self.act_demo)
-        self.help_menu.addSeparator()
         self.help_menu.addAction(self.act_manual_en)
         self.help_menu.addAction(self.act_manual_es)
+        self.help_menu.addAction(self.act_demo)
         self.help_menu.addSeparator()
         self.help_menu.addAction(self.act_about)
 
@@ -1117,6 +1116,13 @@ class PaperWindow(QMainWindow):
         """Persist the chosen UI language and relabel the UI live."""
         self._settings.setValue("language", code)
         i18n.set_language(code)
+        header = getattr(self, "header", None)
+        if header is not None:
+            header.set_language(code)
+            header.set_texts(
+                "ePy Papers",
+                i18n.tr("Journal manuscripts from one source."),
+            )
 
     def _sync_language_menu(self) -> None:
         """Tick the radio item matching the active language."""
@@ -1676,6 +1682,15 @@ class PaperWindow(QMainWindow):
             self.open_path(Path(filename))
 
     def open_path(self, path: Path) -> None:
+        """Open a Markdown document, or the Markdown inside a .zepy package."""
+        if path.suffix.lower() == ".zepy":
+            try:
+                from epy_export import zepy  # noqa: PLC0415
+
+                path = zepy.first_markdown(path)
+            except (OSError, ValueError) as exc:
+                QMessageBox.warning(self, APP_NAME, str(exc))
+                return
         """Open ``path`` in a new tab, or focus the existing tab."""
         if not path.is_file():
             QMessageBox.warning(
@@ -2034,10 +2049,10 @@ def main(argv: list[str] | None = None) -> int:
         except Exception:  # noqa: BLE001 - the door is optional
             pass
 
-    install_header(
+    win.header = install_header(
         win,
         title="ePy Papers",
-        subtitle="Journal manuscripts from one source.",
+        subtitle=i18n.tr("Journal manuscripts from one source."),
         logo_path=Path(__file__).resolve().parent
         / "_config"
         / "_assets"
@@ -2046,6 +2061,7 @@ def main(argv: list[str] | None = None) -> int:
         guide_dock=getattr(win, "guide_dock", None),
         assistant_dock=getattr(win, "assistant_dock", None),
         on_studio=_studio,
+        language=i18n.current_language(),
     )
     win.show()
     for f in args.files:

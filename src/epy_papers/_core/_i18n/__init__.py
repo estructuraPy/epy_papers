@@ -23,6 +23,9 @@ _observers: list[Callable[[], None]] = []
 # Keys MUST match the source strings exactly (including trailing "..."
 # vs "…" ellipsis and Qt "&" menu accelerators).
 _ES: dict[str, str] = {
+    "Journal manuscripts from one source.":
+        "Manuscritos de revista desde una sola fuente.",
+    "app.subtitle": "Manuscritos de revista desde una sola fuente.",
     "Hide guide": "Ocultar guia",
     "Step by step": "Paso a paso",
     "GUIDED WORKFLOW": "FLUJO GUIADO",

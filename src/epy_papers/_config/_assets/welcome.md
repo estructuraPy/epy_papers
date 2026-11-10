@@ -418,8 +418,8 @@ The toolbar contains six dropdown menus:
 | **Text** | Bold, Italic, Insert Link |
 | **Paper** | Insert front-matter blocks and body elements |
 | **Export** | Export DOCX, LaTeX, PDF, HTML |
-| **View** | Theme (when epy_reports is installed), Language |
-| **Help** | User Manual (English), User Manual (Spanish), About |
+| **View** | Theme, Language |
+| **Help** | User Manual (English), User Manual (Spanish), Open demo project, About |
 
 ## Journal Selector
 
