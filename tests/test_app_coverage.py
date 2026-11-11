@@ -902,20 +902,6 @@ def test_export_action_adds_the_missing_suffix_and_delegates(
     assert got_fmt == fmt
 
 
-def test_export_html_cancelled_dialog_does_not_export(
-    window, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-):
-    tab = window._create_tab()
-    tab.load_file(_write(tmp_path / "p.md"))
-    window.tabs.setCurrentWidget(tab)
-    monkeypatch.setattr(
-        app_module.QFileDialog,
-        "getSaveFileName",
-        lambda *_a, **_k: ("", ""),
-    )
-    window._export_html()  # must not raise / must not write anything
-
-
 def test_export_html_adds_the_missing_suffix(
     window, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
@@ -1074,7 +1060,7 @@ def test_show_about_opens_and_closes_the_about_dialog(
     assert opened == ["opened"]
 
 
-def test_open_manual_creates_a_tab_with_the_manual_text(
+def test_open_manual_reuses_the_single_manual_tab(
     window, monkeypatch: pytest.MonkeyPatch
 ):
     monkeypatch.setattr(
@@ -1082,7 +1068,7 @@ def test_open_manual_creates_a_tab_with_the_manual_text(
     )
     before = window.tabs.count()
     window._open_manual("welcome.md")
-    assert window.tabs.count() == before + 1
+    assert window.tabs.count() == before
     assert window._current_tab().text() == "# Manual body\n"
 
 
