@@ -557,6 +557,9 @@ class PaperWindow(QMainWindow):
         self.help_menu.addAction(self.act_manual_en)
         self.help_menu.addAction(self.act_manual_es)
         self.help_menu.addAction(self.act_demo)
+        self.act_update = QAction(i18n.tr("Check for updates..."), self)
+        self.act_update.triggered.connect(self._open_updates)
+        self.help_menu.addAction(self.act_update)
         self.help_menu.addSeparator()
         self.help_menu.addAction(self.act_about)
 
@@ -1397,6 +1400,12 @@ class PaperWindow(QMainWindow):
         return True
 
     # ------------------------------------------ About dialog
+
+    def _open_updates(self) -> None:
+        """Open the release page for this application."""
+        from epy_export import open_releases  # noqa: PLC0415
+
+        open_releases("epy_papers", self)
 
     def _show_about(self) -> None:
         """Open the About epy_papers dialog modally."""

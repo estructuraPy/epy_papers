@@ -918,6 +918,23 @@ def test_export_html_adds_the_missing_suffix(
     assert target.with_suffix(".html").exists()
 
 
+def test_export_html_cancelled_dialog_writes_nothing(
+    window, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """An empty filename from the save dialog stops the export early."""
+    tab = window._create_tab()
+    tab.load_file(_write(tmp_path / "p.md"))
+    window.tabs.setCurrentWidget(tab)
+    monkeypatch.setattr(
+        app_module.QFileDialog,
+        "getSaveFileName",
+        lambda *_a, **_k: ("", ""),
+    )
+    window.statusBar().clearMessage()
+    window._export_html()
+    assert "Exported:" not in window.statusBar().currentMessage()
+
+
 def test_export_html_reports_a_write_failure(
     window, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):
@@ -1176,9 +1193,19 @@ def test_export_via_docs_rejected_dialog_starts_no_worker(
     tab = window._create_tab()
     tab.load_file(_write(tmp_path / "p.md"))
     window.tabs.setCurrentWidget(tab)
-    monkeypatch.setattr(
-        ded.DocsExportDialog, "exec", lambda self: QDialog.DialogCode.Rejected
-    )
+
+    class _RejectedDialog:
+        """The real dialog probes the engine; only its answer matters here."""
+
+        DialogCode = QDialog.DialogCode
+
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+        def exec(self):
+            return QDialog.DialogCode.Rejected
+
+    monkeypatch.setattr(ded, "DocsExportDialog", _RejectedDialog)
     window._export_via_docs()
     assert not hasattr(window, "_docs_worker") or window._docs_worker is None
 
@@ -1634,3 +1661,614 @@ def test_the_guide_is_on_the_right_and_can_be_hidden(window) -> None:
     assert not window.guide_dock.isVisible()
     window.guide_action.trigger()
     assert window.guide_dock.isVisible()
+
+
+# ---------------------------------------------------------------------------
+# Demo paper materialization and the commands around it
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    ("language", "name"),
+    [("en", "demo.md"), ("es", "demo_es.md")],
+)
+def test_demo_paper_path_materializes_the_bundled_demo(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    language: str,
+    name: str,
+):
+    """The demo is written once under LOCALAPPDATA and reused afterwards."""
+    import importlib.resources
+
+    from epy_papers._core import _i18n as i18n
+
+    monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
+    monkeypatch.setattr(i18n, "current_language", lambda: language)
+    path = app_module.demo_paper_path()
+    expected = tmp_path / "ePy Suite" / "demo" / "epy_papers" / name
+    assert path == expected
+    assert path.is_file()
+    bundled = (
+        importlib.resources.files("epy_papers._config._assets")
+        .joinpath(name)
+        .read_text(encoding="utf-8")
+    )
+    assert path.read_text(encoding="utf-8") == bundled
+    path.write_text("edited", encoding="utf-8")
+    assert app_module.demo_paper_path() == path
+    assert path.read_text(encoding="utf-8") == "edited"
+
+
+def test_open_demo_project_opens_the_materialized_file(
+    window, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """The demo action loads the writable copy into a tab."""
+    doc = tmp_path / "demo.md"
+    doc.write_text("# Demo\n", encoding="utf-8")
+    monkeypatch.setattr(app_module, "demo_paper_path", lambda: doc)
+    window._open_demo_project()
+    tab = window._current_tab()
+    assert tab is not None
+    assert tab.path is not None
+    assert tab.path.resolve() == doc.resolve()
+
+
+def test_open_demo_project_warns_when_the_demo_is_unavailable(
+    window, monkeypatch: pytest.MonkeyPatch
+):
+    """A missing demo warns and adds no tab."""
+    def _unavailable():
+        raise FileNotFoundError("gone")
+
+    monkeypatch.setattr(app_module, "demo_paper_path", _unavailable)
+    seen = _no_modals(monkeypatch)
+    before = window.tabs.count()
+    window._open_demo_project()
+    assert seen
+    assert window.tabs.count() == before
+
+
+def test_open_updates_opens_the_release_page(
+    window, monkeypatch: pytest.MonkeyPatch
+):
+    """Check for updates delegates to epy_export's release opener."""
+    calls = []
+    monkeypatch.setattr(
+        "epy_export.open_releases",
+        lambda app_id, parent: calls.append((app_id, parent)),
+    )
+    window._open_updates()
+    assert calls == [("epy_papers", window)]
+
+
+def test_set_default_theme_remembers_the_current_theme(
+    window, store: dict[str, Any]
+):
+    """The default-theme action persists the active theme id."""
+    window._set_default_theme()
+    assert store["theme_default"] == window._current_theme.id
+
+
+# ---------------------------------------------------------------------------
+# Language header and manual tab creation
+# ---------------------------------------------------------------------------
+
+
+def test_set_language_updates_an_installed_header(
+    window, monkeypatch: pytest.MonkeyPatch
+):
+    """When the header exists, a language switch relabels it too."""
+    from epy_papers._core import _i18n
+
+    class _Header:
+        def __init__(self):
+            self.calls = []
+
+        def set_language(self, code):
+            self.calls.append(("language", code))
+
+        def set_texts(self, title, subtitle):
+            self.calls.append(("texts", title, subtitle))
+
+    header = _Header()
+    window.header = header
+    monkeypatch.setattr(_i18n, "_lang", "en")
+    monkeypatch.setattr(_i18n, "_observers", [])
+    window._set_language("es")
+    assert header.calls[0] == ("language", "es")
+    kind, title, subtitle = header.calls[1]
+    assert kind == "texts"
+    assert title == "ePy Papers"
+    assert subtitle == _i18n.tr(
+        "Journal manuscripts from one source."
+    )
+
+
+def test_open_manual_creates_a_new_tab_when_the_manual_is_gone(
+    window, monkeypatch: pytest.MonkeyPatch
+):
+    """With no manual tab left, the manual opens in a fresh tab."""
+    monkeypatch.setattr(
+        app_module, "_load_manual_text", lambda filename: "## Manual\n"
+    )
+    monkeypatch.setattr(window, "_manual_tab", None)
+    before = window.tabs.count()
+    window._open_manual("welcome.md")
+    assert window.tabs.count() == before + 1
+    tab = window._current_tab()
+    assert tab is window._manual_tab
+    assert tab.path is None
+    assert tab.text() == "## Manual\n"
+
+
+# ---------------------------------------------------------------------------
+# Assistant: capability door, context provider and apply callback
+# ---------------------------------------------------------------------------
+
+
+def test_build_assistant_does_nothing_when_unavailable(
+    window, monkeypatch: pytest.MonkeyPatch
+):
+    """No epy_draft panel means no dock and no panel construction."""
+    from epy_papers.epy_studio_connect import assistant as assistant_mod
+
+    monkeypatch.setattr(assistant_mod, "available", lambda: False)
+    monkeypatch.setattr(
+        assistant_mod,
+        "create_panel",
+        lambda **kwargs: pytest.fail("create_panel must not be reached"),
+    )
+    window._build_assistant()  # must return before building the dock
+
+
+def test_build_assistant_swallows_a_panel_construction_error(
+    window, monkeypatch: pytest.MonkeyPatch
+):
+    """A broken panel constructor is an optional capability, not a crash."""
+    from epy_papers.epy_studio_connect import assistant as assistant_mod
+
+    def _broken_panel(**kwargs):
+        raise RuntimeError("assistant exploded")
+
+    monkeypatch.setattr(assistant_mod, "available", lambda: True)
+    monkeypatch.setattr(assistant_mod, "create_panel", _broken_panel)
+    window._build_assistant()  # must not raise
+
+
+def test_assistant_context_is_empty_without_a_tab(
+    window, monkeypatch: pytest.MonkeyPatch
+):
+    """With every tab closed the context carries empty document fields."""
+    from epy_papers._core import _i18n
+
+    monkeypatch.setattr(window, "_current_tab", lambda: None)
+    assert window._assistant_context() == {
+        "title": "",
+        "document": "",
+        "selection": "",
+        "language": _i18n.current_language(),
+    }
+
+
+def test_assistant_context_reports_the_active_document(
+    window, tmp_path: Path
+):
+    """The context carries the title, text, selection and path of the tab."""
+    doc = tmp_path / "paper.md"
+    doc.write_text("Hello world\n", encoding="utf-8")
+    window.open_path(doc)
+    tab = window._current_tab()
+    cursor = tab.editor.textCursor()
+    cursor.select(cursor.SelectionType.Document)
+    tab.editor.setTextCursor(cursor)
+    context = window._assistant_context()
+    assert context["title"] == tab.title()
+    assert context["document"] == "Hello world\n"
+    assert "Hello world" in context["selection"]
+    assert "\u2029" not in context["selection"]
+    assert context["notes"] == str(tab.path)
+
+
+def test_assistant_apply_refuses_without_a_tab(
+    window, monkeypatch: pytest.MonkeyPatch
+):
+    """The apply callback reports failure when no tab is open."""
+    monkeypatch.setattr(window, "_current_tab", lambda: None)
+    assert window._assistant_apply("proposal") is False
+
+
+def test_assistant_apply_inserts_at_the_caret(window):
+    """The apply callback inserts the proposal into the active buffer."""
+    tab = window._new_tab()
+    assert window._assistant_apply("Proposed text.") is True
+    assert tab.editor.toPlainText() == "Proposed text."
+
+
+# ---------------------------------------------------------------------------
+# open_path: .zepy packages
+# ---------------------------------------------------------------------------
+
+
+def test_open_path_reads_the_markdown_inside_a_zepy_package(
+    window, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """A .zepy is resolved to its first Markdown document before opening."""
+    from epy_export import zepy
+
+    inner = tmp_path / "inside.md"
+    inner.write_text("# Inside\n", encoding="utf-8")
+    package = tmp_path / "bundle.zepy"
+    package.write_bytes(b"not a real package")
+    monkeypatch.setattr(zepy, "first_markdown", lambda path: inner)
+    window.open_path(package)
+    tab = window._current_tab()
+    assert tab is not None
+    assert tab.path is not None
+    assert tab.path.resolve() == inner.resolve()
+    assert tab.text() == "# Inside\n"
+
+
+def test_open_path_warns_when_a_zepy_package_is_broken(
+    window, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+):
+    """A package without Markdown warns and adds no tab."""
+    from epy_export import zepy
+
+    package = tmp_path / "broken.zepy"
+    package.write_bytes(b"broken")
+
+    def _broken(path):
+        raise ValueError("no markdown inside")
+
+    monkeypatch.setattr(zepy, "first_markdown", _broken)
+    seen = _no_modals(monkeypatch)
+    before = window.tabs.count()
+    window.open_path(package)
+    assert seen
+    assert window.tabs.count() == before
+
+
+# ---------------------------------------------------------------------------
+# Theme refresh / editor / custom-theme management
+# ---------------------------------------------------------------------------
+
+
+def test_apply_theme_swallows_a_design_css_cache_clear_failure(
+    window, monkeypatch: pytest.MonkeyPatch
+):
+    """A broken design-CSS cache is cosmetic: applying still completes."""
+    from epy_papers._ui import tab as tab_module
+
+    calls = {"n": 0}
+
+    class _BrokenOnce:
+        @staticmethod
+        def cache_clear():
+            calls["n"] += 1
+            if calls["n"] == 1:
+                raise RuntimeError("cache is gone")
+
+        def __call__(self):
+            return ""
+
+    monkeypatch.setattr(tab_module, "_design_css", _BrokenOnce())
+    theme_id = next(iter(app_module._themes.THEMES))
+    window._apply_theme(theme_id)
+    assert window.theme_actions[theme_id].isChecked()
+    assert calls["n"] >= 1
+
+
+def test_refresh_themes_is_a_noop_when_themes_are_unavailable(
+    window, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(app_module, "_THEMES_AVAILABLE", False)
+    window._refresh_themes()  # must not raise
+
+
+def test_refresh_themes_selects_the_given_id(window):
+    target = next(iter(app_module._themes.THEMES))
+    window._refresh_themes(select_id=target)
+    assert window._current_theme.id == target
+
+
+def test_refresh_themes_retranslates_when_language_is_spanish(
+    window, monkeypatch: pytest.MonkeyPatch
+):
+    """A localized window is relabelled after the theme menu rebuild."""
+    from epy_papers._core import _i18n
+
+    monkeypatch.setattr(_i18n, "_lang", "es")
+    monkeypatch.setattr(_i18n, "_observers", [])
+    window._refresh_themes()
+    assert window.act_save.text() == "Guardar"
+
+
+def test_open_theme_editor_is_a_noop_when_themes_are_unavailable(
+    window, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(app_module, "_THEMES_AVAILABLE", False)
+    window._open_theme_editor()  # must not raise or open a dialog
+
+
+def test_open_theme_editor_cancelled_saves_nothing(
+    window, monkeypatch: pytest.MonkeyPatch
+):
+    from epy_papers._ui import theme_editor_dialog as ted
+
+    class _FakeEditor:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def exec(self):
+            return QDialog.DialogCode.Rejected
+
+    saved = []
+    monkeypatch.setattr(ted, "ThemeEditorDialog", _FakeEditor)
+    monkeypatch.setattr(
+        app_module._themes,
+        "save_user_theme",
+        lambda payload: saved.append(payload),
+    )
+    window._open_theme_editor()
+    assert saved == []
+
+
+def test_open_theme_editor_save_success_refreshes_and_reports(
+    window, monkeypatch: pytest.MonkeyPatch
+):
+    from epy_papers._ui import theme_editor_dialog as ted
+
+    payload = {"display_name": "Saved OK"}
+
+    class _FakeEditor:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def exec(self):
+            return QDialog.DialogCode.Accepted
+
+        def epyson_payload(self):
+            return payload
+
+        def theme_name(self):
+            return "Saved OK"
+
+    selected = {}
+    monkeypatch.setattr(ted, "ThemeEditorDialog", _FakeEditor)
+    monkeypatch.setattr(
+        app_module._themes,
+        "save_user_theme",
+        lambda payload: "saved-id",
+    )
+    monkeypatch.setattr(
+        window,
+        "_refresh_themes",
+        lambda select_id=None: selected.update(id=select_id),
+    )
+    window._open_theme_editor()
+    assert selected["id"] == "saved-id"
+    assert "Theme saved" in window.statusBar().currentMessage()
+
+
+def test_open_theme_editor_save_failure_warns(
+    window, monkeypatch: pytest.MonkeyPatch
+):
+    from epy_papers._ui import theme_editor_dialog as ted
+
+    class _FakeEditor:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def exec(self):
+            return QDialog.DialogCode.Accepted
+
+        def epyson_payload(self):
+            return {}
+
+        def theme_name(self):
+            return "Broken"
+
+    def _boom(payload):
+        raise OSError("disk full")
+
+    monkeypatch.setattr(ted, "ThemeEditorDialog", _FakeEditor)
+    monkeypatch.setattr(app_module._themes, "save_user_theme", _boom)
+    seen = _no_modals(monkeypatch)
+    window._open_theme_editor()
+    assert seen and "disk full" in seen[0][1]
+
+
+def test_edit_current_theme_clones_a_bundled_theme(
+    window, monkeypatch: pytest.MonkeyPatch
+):
+    """A bundled theme is edited as a NEW theme (edit_id stays None)."""
+    captured = {}
+    monkeypatch.setattr(
+        window,
+        "_open_theme_editor",
+        lambda edit_id=None: captured.update(edit_id=edit_id),
+    )
+    window._edit_current_theme()
+    assert captured["edit_id"] is None
+
+
+def test_edit_current_theme_opens_the_custom_theme_by_id(
+    window, monkeypatch: pytest.MonkeyPatch
+):
+    """An active custom theme is edited in place, with its own id."""
+    current_id = window._current_theme.id
+    captured = {}
+    monkeypatch.setattr(
+        app_module._themes, "user_theme_ids", lambda: {current_id}
+    )
+    monkeypatch.setattr(
+        window,
+        "_open_theme_editor",
+        lambda edit_id=None: captured.update(edit_id=edit_id),
+    )
+    window._edit_current_theme()
+    assert captured["edit_id"] == current_id
+
+
+class _CustomTheme:
+    """Minimal stand-in for a user theme in the delete flow."""
+
+    def __init__(self, theme_id: str, name: str) -> None:
+        self.id = theme_id
+        self.display_name = name
+
+
+def test_delete_custom_theme_no_custom_themes_informs(
+    window, monkeypatch: pytest.MonkeyPatch
+):
+    monkeypatch.setattr(app_module._themes, "user_theme_ids", lambda: set())
+    informed = []
+    monkeypatch.setattr(
+        app_module.QMessageBox,
+        "information",
+        staticmethod(lambda *a, **k: informed.append(a)),
+    )
+    window._delete_custom_theme()
+    assert informed
+
+
+def test_delete_custom_theme_picker_cancelled_is_a_noop(
+    window, monkeypatch: pytest.MonkeyPatch
+):
+    from PySide6.QtWidgets import QInputDialog
+
+    monkeypatch.setattr(
+        app_module._themes, "user_theme_ids", lambda: {"custom1"}
+    )
+    monkeypatch.setattr(
+        app_module._themes,
+        "THEMES",
+        {"custom1": _CustomTheme("custom1", "Custom One")},
+    )
+    monkeypatch.setattr(
+        QInputDialog, "getItem", staticmethod(lambda *a, **k: ("", False))
+    )
+    deleted = []
+    monkeypatch.setattr(
+        app_module._themes,
+        "delete_user_theme",
+        lambda tid: deleted.append(tid),
+    )
+    window._delete_custom_theme()
+    assert deleted == []
+
+
+def test_delete_custom_theme_confirm_declined_keeps_it(
+    window, monkeypatch: pytest.MonkeyPatch
+):
+    from PySide6.QtWidgets import QInputDialog
+
+    monkeypatch.setattr(
+        app_module._themes, "user_theme_ids", lambda: {"custom1"}
+    )
+    monkeypatch.setattr(
+        app_module._themes,
+        "THEMES",
+        {"custom1": _CustomTheme("custom1", "Custom One")},
+    )
+    monkeypatch.setattr(
+        QInputDialog,
+        "getItem",
+        staticmethod(lambda *a, **k: ("Custom One", True)),
+    )
+    monkeypatch.setattr(
+        app_module.QMessageBox,
+        "question",
+        staticmethod(lambda *a, **k: QMessageBox.StandardButton.No),
+    )
+    deleted = []
+    monkeypatch.setattr(
+        app_module._themes,
+        "delete_user_theme",
+        lambda tid: deleted.append(tid),
+    )
+    window._delete_custom_theme()
+    assert deleted == []
+
+
+def test_delete_custom_theme_confirmed_removes_it(
+    window, monkeypatch: pytest.MonkeyPatch
+):
+    """A confirmed delete removes it and refreshes to the same theme."""
+    from PySide6.QtWidgets import QInputDialog
+
+    monkeypatch.setattr(
+        app_module._themes, "user_theme_ids", lambda: {"custom1"}
+    )
+    monkeypatch.setattr(
+        app_module._themes,
+        "THEMES",
+        {"custom1": _CustomTheme("custom1", "Custom One")},
+    )
+    monkeypatch.setattr(
+        QInputDialog,
+        "getItem",
+        staticmethod(lambda *a, **k: ("Custom One", True)),
+    )
+    monkeypatch.setattr(
+        app_module.QMessageBox,
+        "question",
+        staticmethod(lambda *a, **k: QMessageBox.StandardButton.Yes),
+    )
+    deleted = []
+    refreshed = {}
+    monkeypatch.setattr(
+        app_module._themes,
+        "delete_user_theme",
+        lambda tid: deleted.append(tid),
+    )
+    monkeypatch.setattr(
+        window,
+        "_refresh_themes",
+        lambda select_id=None: refreshed.update(id=select_id),
+    )
+    window._delete_custom_theme()
+    assert deleted == ["custom1"]
+    assert refreshed["id"] == window._current_theme.id
+
+
+def test_delete_the_active_custom_theme_falls_back_to_the_default(
+    window, monkeypatch: pytest.MonkeyPatch
+):
+    """Deleting the active theme reselects the bundled default."""
+    from PySide6.QtWidgets import QInputDialog
+
+    custom = _CustomTheme("custom1", "Custom One")
+    monkeypatch.setattr(
+        app_module._themes, "user_theme_ids", lambda: {"custom1"}
+    )
+    monkeypatch.setattr(
+        app_module._themes, "THEMES", {"custom1": custom}
+    )
+    monkeypatch.setattr(
+        QInputDialog,
+        "getItem",
+        staticmethod(lambda *a, **k: ("Custom One", True)),
+    )
+    monkeypatch.setattr(
+        app_module.QMessageBox,
+        "question",
+        staticmethod(lambda *a, **k: QMessageBox.StandardButton.Yes),
+    )
+    deleted = []
+    refreshed = {}
+    monkeypatch.setattr(
+        app_module._themes,
+        "delete_user_theme",
+        lambda tid: deleted.append(tid),
+    )
+    monkeypatch.setattr(
+        window,
+        "_refresh_themes",
+        lambda select_id=None: refreshed.update(id=select_id),
+    )
+    monkeypatch.setattr(window, "_current_theme", custom)
+    window._delete_custom_theme()
+    assert deleted == ["custom1"]
+    assert refreshed["id"] == app_module._themes.DEFAULT_THEME_ID

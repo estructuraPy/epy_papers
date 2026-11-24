@@ -117,6 +117,16 @@ def test_manuscript_scalar_source():
     assert ms.authors == []
 
 
+def test_manuscript_parses_a_scalar_author_byline():
+    """Reports and Slides write a scalar ``author``: keep it as one author."""
+    source = (
+        "---\ntitle: A bylined paper\nauthor: Jane Doe\n---\n\n# Body\n"
+    )
+    ms = Manuscript.from_source(source)
+    assert len(ms.authors) == 1
+    assert ms.authors[0].name == "Jane Doe"
+
+
 def test_split_front_matter_no_closing_fence_returns_whole_source():
     """An opening ``---`` with no closing fence is not front matter at
     all -- the whole thing is treated as body, not silently truncated.

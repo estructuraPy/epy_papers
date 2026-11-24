@@ -83,6 +83,8 @@ class TestAllContract:
         "user_journals_path",
         "add_journal",
         "remove_user_journal",
+        "get_theme",
+        "themes",
     ]
 
     def test_all_exists(self):

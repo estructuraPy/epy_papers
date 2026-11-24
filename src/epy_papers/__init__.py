@@ -58,7 +58,7 @@ from epy_papers._core._validation import (  # noqa: E402
 )
 from epy_papers._core.renderer import PandocMissingError  # noqa: E402
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 
 __all__ = [
     "Paper",

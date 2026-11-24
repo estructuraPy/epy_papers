@@ -100,6 +100,24 @@ def test_icon_source_falls_back_to_pythonw_off_path(monkeypatch):
     assert icon.endswith('pythonw.exe",0')
 
 
+def test_launcher_path_uses_the_installed_console_script(monkeypatch):
+    """An app installed on PATH is used directly, not the ``-m`` fallback."""
+    monkeypatch.setattr(wa, "_is_frozen", lambda: False)
+    monkeypatch.setattr(
+        wa.shutil, "which", lambda _name: "C:\\bin\\epy_papers.exe"
+    )
+    assert wa._launcher_path() == "C:\\bin\\epy_papers.exe"
+
+
+def test_icon_source_uses_the_installed_console_script(monkeypatch):
+    """The installed launcher supplies the icon, not ``pythonw.exe``."""
+    monkeypatch.setattr(wa, "_is_frozen", lambda: False)
+    monkeypatch.setattr(
+        wa.shutil, "which", lambda _name: "C:\\bin\\epy_papers.exe"
+    )
+    assert wa._icon_source() == '"C:\\bin\\epy_papers.exe",0'
+
+
 def test_open_command_does_not_double_quote_an_already_quoted_launcher(
     monkeypatch,
 ):

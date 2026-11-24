@@ -231,6 +231,44 @@ def test_main_with_no_flags_reuses_the_existing_qapplication(
     assert calls == ["exec"]
 
 
+def test_main_studio_door_swallows_its_own_failure(
+    qapp: QApplication, monkeypatch: pytest.MonkeyPatch
+):
+    """The header's Studio callback opens Studio, and never crashes if
+    epy_studio is missing.
+    """
+    captured = {}
+
+    def _fake_install_header(parent, **kwargs):
+        captured["on_studio"] = kwargs["on_studio"]
+        return object()
+
+    monkeypatch.setattr(QApplication, "exec", lambda self: 0)
+    monkeypatch.setattr(app_module.PaperWindow, "show", lambda self: None)
+    monkeypatch.setattr(
+        "epy_export._ui.app_header.install_header",
+        _fake_install_header,
+    )
+    import epy_papers.epy_studio_connect as studio_connect
+
+    opened: list[str] = []
+    monkeypatch.setattr(
+        studio_connect,
+        "open_app",
+        lambda app_id: opened.append(app_id),
+    )
+    assert app_module.main([]) == 0
+    studio = captured["on_studio"]
+    studio()
+    assert opened == ["epy_studio"]
+
+    def _unavailable(app_id):
+        raise RuntimeError("epy_studio is not installed")
+
+    monkeypatch.setattr(studio_connect, "open_app", _unavailable)
+    studio()  # must not raise
+
+
 def test_dunder_main_guard_runs_main_and_exits_with_its_code(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ):

@@ -57,6 +57,7 @@ _ES: dict[str, str] = {
     "E&xport": "E&xportar",
     "&View": "&Ver",
     "&Help": "&Ayuda",
+    "Check for updates...": "Buscar actualizaciones...",
     # --- toolbar dropdown buttons (no accelerator) ---
     "File": "Archivo",
     "Text": "Texto",
